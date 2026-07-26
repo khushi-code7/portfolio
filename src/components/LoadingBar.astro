@@ -2,9 +2,10 @@
 /**
  * A hairline across the bottom of the viewport.
  *
- * It is always there as a faint accent-tinted track — quiet enough to read as
- * part of the furniture rather than a widget. When you click through to another
- * page, the track fills with accent colour and sweeps right.
+ * The track is on screen at all times, in a loud colour on purpose — see the
+ * note by --loading-track. When you click through to another page it fills with
+ * a second, contrasting colour and sweeps right, so the resting state and the
+ * loading state are impossible to confuse.
  *
  * One honest caveat about the sweep: this is a multi-page site, so clicking a
  * link tears down the current document and the replacement arrives already
@@ -25,20 +26,36 @@
 
 <style>
   .loading-bar {
+    /*
+      Deliberately loud, and deliberately not --accent: a colour that clashes
+      with the palette makes it obvious at a glance that the element rendered
+      and is positioned correctly. Tuned per scheme so it has equal punch on
+      cream and on near-black. Turn it down once you trust it.
+    */
+    --loading-track: #0d9488; /* teal, dark enough to read on the light bg */
+    --loading-fill: #e11d48; /* rose — the sweep, distinct from the track */
+
     position: fixed;
     inset-inline: 0;
     inset-block-end: 0;
     z-index: 200; /* above the skip link */
-    height: 2px;
-    /* The always-on state: present, but barely. */
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    height: 4px;
+    /* The always-on state: solid and visible on every page, at rest. */
+    background: var(--loading-track);
     pointer-events: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .loading-bar {
+      --loading-track: #2dd4bf; /* lighter teal, so it lifts off the dark bg */
+      --loading-fill: #fb7185;
+    }
   }
 
   .loading-bar__fill {
     width: 0;
     height: 100%;
-    background: var(--accent);
+    background: var(--loading-fill);
   }
 
   /*
