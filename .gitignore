@@ -24,5 +24,9 @@ tokens.env
 # editor / os
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/
+
+# Keep the shared editor settings, ignore personal ones
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

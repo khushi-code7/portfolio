@@ -1,0 +1,29 @@
+{
+  // Hide generated folders from the explorer. They are not deleted — they are
+  // just noise. Everything hidden here is rebuilt by `npm install` / `npm run build`.
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.astro": true,
+    "**/.vercel": true
+  },
+
+  // Do not waste time searching 15,000 dependency files.
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.astro": true,
+    "**/package-lock.json": true
+  },
+
+  // Do not watch them either — this is most of VS Code's CPU use on Node projects.
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.astro/**": true
+  },
+
+  "editor.formatOnSave": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}
