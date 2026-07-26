@@ -39,7 +39,12 @@
     inset-inline: 0;
     inset-block-end: 0;
     z-index: 200; /* above the skip link */
-    height: 4px;
+    /*
+      Thick on purpose while we confirm this renders. At 4px, sitting on the
+      bottom edge of a maximised window next to the scrollbar and the taskbar,
+      it was easy to look straight past. Drop this to 2-3px once you trust it.
+    */
+    height: 10px;
     /* The always-on state: solid and visible on every page, at rest. */
     background: var(--loading-track);
     pointer-events: none;
