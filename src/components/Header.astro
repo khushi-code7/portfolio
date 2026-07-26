@@ -1,0 +1,32 @@
+---
+import { nav, site } from '../data/site';
+
+/** Trailing slashes differ between `astro dev` and the built output — normalise both sides. */
+const trim = (p: string) => p.replace(/\/+$/, '');
+const path = trim(Astro.url.pathname);
+
+/** A nav item is current when you are on it or on one of its children. */
+const isCurrent = (href: string) => {
+  const base = trim(href);
+  return path === base || path.startsWith(`${base}/`);
+};
+---
+
+<header class="site-header">
+  <div class="shell site-header__inner">
+    <a class="site-header__name" href="/">{site.name}</a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

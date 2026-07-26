@@ -1,0 +1,25 @@
+---
+import Base from './Base.astro';
+
+/**
+ * Layout for standalone Markdown pages in src/pages (About, colophon, uses…).
+ * Astro passes the page's frontmatter in as props.
+ */
+interface Props {
+  title: string;
+  description?: string;
+  lede?: string;
+}
+
+const { title, description, lede } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <div class="page-head">
+    <h1>{title}</h1>
+    {lede && <p>{lede}</p>}
+  </div>
+  <div class="prose">
+    <slot />
+  </div>
+</Base>

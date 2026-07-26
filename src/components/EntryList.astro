@@ -1,0 +1,42 @@
+---
+import { formatDate, toISODate } from '../lib/content';
+
+export interface EntryItem {
+  href: string;
+  title: string;
+  summary: string;
+  date: Date;
+  tags?: readonly string[];
+}
+
+interface Props {
+  entries: EntryItem[];
+  /** Shown in place of the list when there is nothing to show. */
+  emptyMessage?: string;
+}
+
+const { entries, emptyMessage = 'Nothing here yet.' } = Astro.props;
+---
+
+{
+  entries.length === 0 ? (
+    <p class="empty">{emptyMessage}</p>
+  ) : (
+    <ul class="entry-list">
+      {entries.map((entry) => (
+        <li>
+          <a class="entry" href={entry.href}>
+            <h3 class="entry__title">{entry.title}</h3>
+            <p class="entry__summary">{entry.summary}</p>
+            <div class="entry__meta">
+              <time datetime={toISODate(entry.date)}>{formatDate(entry.date)}</time>
+              {entry.tags && entry.tags.length > 0 && (
+                <span class="dot">{entry.tags.join(', ')}</span>
+              )}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

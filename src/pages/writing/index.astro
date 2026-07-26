@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+
+import Base from '../../layouts/Base.astro';
+import EntryList from '../../components/EntryList.astro';
+import { publishedByNewest } from '../../lib/content';
+
+const posts = publishedByNewest(await getCollection('writing'));
+---
+
+<Base title="Writing" description="Notes on design, code, and the space between them.">
+  <div class="page-head">
+    <h1>Writing</h1>
+    <p>
+      Notes on design, code, and the space between them.
+      <a href="/rss.xml">RSS</a>.
+    </p>
+  </div>
+
+  <EntryList
+    entries={posts.map((p) => ({
+      href: `/writing/${p.id}/`,
+      title: p.data.title,
+      summary: p.data.summary,
+      date: p.data.date,
+      tags: p.data.tags,
+    }))}
+    emptyMessage="No posts published yet."
+  />
+</Base>

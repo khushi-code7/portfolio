@@ -1,0 +1,47 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+import Base from '../../layouts/Base.astro';
+import { formatDate, isPublished, readingTime, toISODate } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('writing')).filter(isPublished);
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+type Props = { entry: CollectionEntry<'writing'> };
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, summary, date, tags } = entry.data;
+const minutes = readingTime(entry.body ?? '');
+---
+
+<Base title={title} description={summary} type="article">
+  <article>
+    <header class="post-head">
+      <div class="post-head__meta">
+        <time datetime={toISODate(date)}>{formatDate(date)}</time>
+        <span class="dot">{minutes} min read</span>
+      </div>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+
+      {
+        tags.length > 0 && (
+          <ul class="tags" style="margin-top:1rem">
+            {tags.map((tag) => (
+              <li class="tag">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+
+  <a class="back-link" href="/writing/">← All writing</a>
+</Base>
