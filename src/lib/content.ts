@@ -3,11 +3,33 @@
  * Kept free of Astro imports so they can be unit tested directly.
  */
 
-export type Dated = { data: { date: Date; draft?: boolean; featured?: boolean } };
+export type Draftable = { data: { draft?: boolean } };
+export type Dated = { data: { date: Date; draft?: boolean } };
 
-/** Drafts never ship. In `astro dev` they stay visible so you can preview them. */
-export function isPublished(entry: { data: { draft?: boolean } }): boolean {
-  return import.meta.env?.DEV === true || entry.data.draft !== true;
+export interface VisibilityOptions {
+  /**
+   * Defaults to true under `astro dev` so you can preview drafts, and false in
+   * a build so they never ship. Pass it explicitly to override — the tests do.
+   */
+  includeDrafts?: boolean;
+}
+
+/** True under `astro dev`, false in a production build. */
+function inDevMode(): boolean {
+  return import.meta.env?.DEV === true;
+}
+
+/** Pure predicate: has this entry been marked as a draft? */
+export function isPublished(entry: Draftable): boolean {
+  return entry.data.draft !== true;
+}
+
+/** Entries the current context should show, in their original order. */
+export function visible<T extends Draftable>(
+  entries: readonly T[],
+  { includeDrafts = inDevMode() }: VisibilityOptions = {},
+): T[] {
+  return includeDrafts ? [...entries] : entries.filter(isPublished);
 }
 
 /** Newest first. Does not mutate the input array. */
@@ -15,9 +37,12 @@ export function byNewest<T extends Dated>(entries: readonly T[]): T[] {
   return [...entries].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 }
 
-/** Published entries, newest first — the ordering every index page wants. */
-export function publishedByNewest<T extends Dated>(entries: readonly T[]): T[] {
-  return byNewest(entries.filter(isPublished));
+/** Visible entries, newest first — the ordering every index page wants. */
+export function publishedByNewest<T extends Dated>(
+  entries: readonly T[],
+  options?: VisibilityOptions,
+): T[] {
+  return byNewest(visible(entries, options));
 }
 
 /**

@@ -8,12 +8,18 @@ import {
   publishedByNewest,
   readingTime,
   toISODate,
+  visible,
 } from './content';
 
-const entry = (date: string, extra: Record<string, unknown> = {}) => ({
+type TestEntry = { id: string; data: { date: Date; draft?: boolean } };
+
+const entry = (date: string, extra: { draft?: boolean } = {}): TestEntry => ({
   id: date,
   data: { date: new Date(date), ...extra },
 });
+
+/** What a production build does. Vitest runs with DEV=true, so be explicit. */
+const built = { includeDrafts: false };
 
 describe('isPublished', () => {
   it('keeps entries with no draft flag', () => {
@@ -24,8 +30,25 @@ describe('isPublished', () => {
     expect(isPublished({ data: { draft: false } })).toBe(true);
   });
 
-  it('drops drafts', () => {
+  it('rejects drafts', () => {
     expect(isPublished({ data: { draft: true } })).toBe(false);
+  });
+});
+
+describe('visible', () => {
+  const entries = [entry('2024-01-01'), entry('2024-02-01', { draft: true })];
+
+  it('drops drafts in a build', () => {
+    expect(visible(entries, built).map((e) => e.id)).toEqual(['2024-01-01']);
+  });
+
+  it('keeps drafts when previewing', () => {
+    expect(visible(entries, { includeDrafts: true })).toHaveLength(2);
+  });
+
+  it('does not mutate the input', () => {
+    visible(entries, built);
+    expect(entries).toHaveLength(2);
   });
 });
 
@@ -48,13 +71,21 @@ describe('byNewest', () => {
 });
 
 describe('publishedByNewest', () => {
+  const entries = [entry('2023-01-01'), entry('2025-06-01', { draft: true }), entry('2024-03-15')];
+
   it('filters drafts and sorts in one pass', () => {
-    const sorted = publishedByNewest([
-      entry('2023-01-01'),
-      entry('2025-06-01', { draft: true }),
-      entry('2024-03-15'),
+    expect(publishedByNewest(entries, built).map((e) => e.id)).toEqual([
+      '2024-03-15',
+      '2023-01-01',
     ]);
-    expect(sorted.map((e) => e.id)).toEqual(['2024-03-15', '2023-01-01']);
+  });
+
+  it('sorts drafts in alongside the rest when previewing', () => {
+    expect(publishedByNewest(entries, { includeDrafts: true }).map((e) => e.id)).toEqual([
+      '2025-06-01',
+      '2024-03-15',
+      '2023-01-01',
+    ]);
   });
 });
 

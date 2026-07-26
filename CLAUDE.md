@@ -29,7 +29,20 @@ Revisit this if the site needs genuine interactivity or server-side logic — Ne
 
 ## Commands
 
-Not yet scaffolded. Fill this in with the real `dev` / `build` / `test` commands once the project exists — including how to run a single test.
+```
+npm install          # once
+npm run dev          # local server at http://localhost:4321 (drafts visible)
+npm run build        # astro check (typecheck) + static build to dist/ — drafts excluded
+npm run preview      # serve dist/ exactly as Vercel will
+npm test             # vitest, single run
+npm run test:watch   # vitest, watch mode
+```
+
+Run one test file: `npx vitest run src/lib/content.test.ts`
+Run one test by name: `npx vitest run -t "rounds up to the next minute"`
+
+`npm run build` is the gate — it typechecks Astro templates as well as TS, so a
+broken prop or a bad frontmatter field fails the build rather than the deploy.
 
 ## Deployment
 
@@ -40,6 +53,23 @@ Not yet scaffolded. Fill this in with the real `dev` / `build` / `test` commands
 ## Content model
 
 Portfolio content (projects, writing, bio) lives in Markdown or data files, separate from layout and components. Adding a new project should mean adding one file — never editing a template.
+
+Where things actually live:
+
+| What | Where |
+| --- | --- |
+| Name, tagline, intro, social links | `src/data/site.ts` |
+| Projects | `src/content/projects/*.md` → `/projects/<filename>/` |
+| Posts | `src/content/writing/*.md` → `/writing/<filename>/` |
+| Bio page prose | `src/pages/about.md` |
+| Frontmatter schemas | `src/content.config.ts` |
+
+Frontmatter is validated by Zod at build time — a typo in a field name fails the
+build with a readable error instead of rendering something wrong.
+
+`draft: true` on any entry keeps it out of the build while leaving it visible in
+`npm run dev`. `featured: true` on a project pins it to the homepage; if nothing
+is pinned, the homepage falls back to the three most recent.
 
 ## Conventions
 
