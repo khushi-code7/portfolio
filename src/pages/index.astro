@@ -1,70 +1,45 @@
 ---
-import { getCollection } from 'astro:content';
-
 import Base from '../layouts/Base.astro';
-import EntryList from '../components/EntryList.astro';
-import { publishedByNewest } from '../lib/content';
-import { activeLinks, site } from '../data/site';
-
-const allProjects = publishedByNewest(await getCollection('projects'));
-// Featured projects lead; if nothing is pinned, fall back to the three newest.
-const pinned = allProjects.filter((p) => p.data.featured);
-const projects = (pinned.length > 0 ? pinned : allProjects).slice(0, 3);
-
-const posts = publishedByNewest(await getCollection('writing')).slice(0, 3);
+import { site } from '../data/site';
 ---
 
-<Base>
-  <div class="page-head">
-    <h1>{site.greeting}</h1>
-    <p class="lede" style="margin-top:0.75rem">{site.tagline}</p>
+<Base bare>
+  <div class="landing">
+    <h1 class="landing__title">{site.greeting}</h1>
+    <p class="landing__note">Website coming soon</p>
   </div>
+</Base>
 
-  <p style="max-width:var(--measure)">{site.intro}</p>
-
-  {
-    activeLinks.length > 0 && (
-      <div class="link-row">
-        {activeLinks.map((link) => (
-          <a class="button" href={link.href}>
-            {link.label}
-          </a>
-        ))}
-      </div>
-    )
+<style>
+  /* Full-viewport centred hero. Nothing else on the page, so the layout
+     lives here rather than in global.css. */
+  .landing {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    padding: var(--gutter);
+    text-align: center;
   }
 
-  <section class="section">
-    <div class="section__head">
-      <h2>Selected work</h2>
-      <a class="section__more" href="/projects/">All work →</a>
-    </div>
-    <EntryList
-      entries={projects.map((p) => ({
-        href: `/projects/${p.id}/`,
-        title: p.data.title,
-        summary: p.data.summary,
-        date: p.data.date,
-        tags: p.data.tags,
-      }))}
-      emptyMessage="No projects published yet."
-    />
-  </section>
+  .landing__title {
+    margin: 0;
+    max-width: 20ch;
+    /* Big on desktop, still comfortable on a narrow phone. */
+    font-size: clamp(2.25rem, 8vw, 5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
 
-  <section class="section">
-    <div class="section__head">
-      <h2>Writing</h2>
-      <a class="section__more" href="/writing/">All writing →</a>
-    </div>
-    <EntryList
-      entries={posts.map((p) => ({
-        href: `/writing/${p.id}/`,
-        title: p.data.title,
-        summary: p.data.summary,
-        date: p.data.date,
-        tags: p.data.tags,
-      }))}
-      emptyMessage="No posts published yet."
-    />
-  </section>
-</Base>
+  .landing__note {
+    margin: 0;
+    color: var(--text-muted);
+    opacity: 0.6;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+</style>

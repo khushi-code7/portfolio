@@ -10,9 +10,11 @@ interface Props {
   description?: string;
   /** Set on article pages so social cards say "article" rather than "website". */
   type?: 'website' | 'article';
+  /** Drop the header, footer, and page shell — used by the standalone landing page. */
+  bare?: boolean;
 }
 
-const { title, description = site.intro, type = 'website' } = Astro.props;
+const { title, description = site.intro, type = 'website', bare = false } = Astro.props;
 
 const pageTitle = title ? `${title} — ${site.title}` : `${site.title} · ${site.tagline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
@@ -42,13 +44,25 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).hr
   </head>
 
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <Header />
-    <main id="main" tabindex="-1">
-      <div class="shell">
-        <slot />
-      </div>
-    </main>
-    <Footer />
+    {
+      bare ? (
+        <main id="main" tabindex="-1">
+          <slot />
+        </main>
+      ) : (
+        <>
+          <a class="skip-link" href="#main">
+            Skip to content
+          </a>
+          <Header />
+          <main id="main" tabindex="-1">
+            <div class="shell">
+              <slot />
+            </div>
+          </main>
+          <Footer />
+        </>
+      )
+    }
   </body>
 </html>
