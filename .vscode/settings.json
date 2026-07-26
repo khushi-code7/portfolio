@@ -23,6 +23,16 @@
     "**/.astro/**": true
   },
 
+  // Collapse config files under package.json, so the root shows folders and
+  // README instead of a wall of dotfiles. Click the arrow to expand.
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, tsconfig.json, vitest.config.ts, astro.config.mjs, .gitignore, .env, .env.example",
+    "README.md": "CLAUDE.md",
+    "*.ts": "$(capture).test.ts"
+  },
+
   "editor.formatOnSave": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true

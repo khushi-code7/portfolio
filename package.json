@@ -8,7 +8,9 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "clean": "node -e \"for(const d of ['dist','.astro']) require('fs').rmSync(d,{recursive:true,force:true})\"",
+    "clean:all": "node -e \"for(const d of ['dist','.astro','node_modules']) require('fs').rmSync(d,{recursive:true,force:true})\""
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.0",
