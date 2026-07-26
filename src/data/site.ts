@@ -6,7 +6,7 @@
 export const site = {
   name: 'Khushi',
   // The homepage headline — the first line anyone reads.
-  greeting: "Hey. Welcome to Khushi's portfolio.",
+  greeting: "Hey! Welcome to Khushi's portfolio.",
   // Shown in the browser tab and search results, after the page title.
   title: 'Khushi',
   tagline: 'Designer and developer',
