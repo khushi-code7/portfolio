@@ -15,7 +15,7 @@ export const site = {
     'I build things for the web — interfaces that stay out of the way, and the systems underneath them. Currently focused on design engineering and front-end architecture.',
   // Used for absolute URLs in the sitemap and RSS feed. Swap in the real domain
   // before launch; Vercel also serves the site at its own *.vercel.app URL.
-  url: 'https://example.com',
+  url: 'https://portfolio-sigma-lyart-29.vercel.app',
   email: 'avenueabundance9@gmail.com',
   // Any link with an empty string is hidden automatically.
   links: [
