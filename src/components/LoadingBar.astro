@@ -1,54 +1,59 @@
 ---
 /**
- * A thin progress bar across the top of the viewport while the browser fetches
- * the next page.
+ * A hairline across the bottom of the viewport.
  *
- * Why a bar and not a splash screen: pages here are static HTML with no
- * client-side render step, so on a normal connection the next page paints
- * before a spinner could finish its first frame. A full-screen "loading…"
- * would add waiting rather than explain it. This shows up only once a
- * navigation has already taken longer than SHOW_AFTER_MS, so it is invisible
- * on a fast connection and does real work on a slow one.
+ * It is always there as a faint accent-tinted track — quiet enough to read as
+ * part of the furniture rather than a widget. When you click through to another
+ * page, the track fills with accent colour and sweeps right.
  *
- * There is deliberately nothing here for the very first page load — by the time
- * any script of ours runs, the HTML is already parsed and on screen.
+ * One honest caveat about the sweep: this is a multi-page site, so clicking a
+ * link tears down the current document and the replacement arrives already
+ * rendered. On a fast connection the fill only exists for the few tens of
+ * milliseconds before the page is swapped, so it reads as a brief flicker. It
+ * comes into its own on a slow or flaky connection, which is when a loading
+ * signal is worth anything. Making the sweep fully visible on every navigation
+ * would mean adopting a client-side router.
  *
  * aria-hidden: browsers announce page loads to assistive tech themselves, so
- * this is decoration. Duplicating it in the accessibility tree would only add
- * noise.
+ * this is decoration. Duplicating it in the accessibility tree adds noise.
  */
 ---
 
-<div id="loading-bar" class="loading-bar" aria-hidden="true"></div>
+<div id="loading-bar" class="loading-bar" aria-hidden="true">
+  <div class="loading-bar__fill"></div>
+</div>
 
 <style>
   .loading-bar {
     position: fixed;
-    inset-block-start: 0;
-    inset-inline-start: 0;
+    inset-inline: 0;
+    inset-block-end: 0;
     z-index: 200; /* above the skip link */
-    width: 0;
-    height: 3px;
-    background: var(--accent);
-    opacity: 0;
+    height: 2px;
+    /* The always-on state: present, but barely. */
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
     pointer-events: none;
-    transition: opacity 120ms linear;
+  }
+
+  .loading-bar__fill {
+    width: 0;
+    height: 100%;
+    background: var(--accent);
   }
 
   /*
-    Eases towards 92% and stops. It never reaches the end on its own: the bar
-    disappears because the new page replaced this one, which is the only honest
-    signal we have. Front-loading the movement means a slow load still looks
-    like progress rather than a stalled bar.
+    Starts at 15% rather than 0 so a click registers immediately instead of
+    creeping up from nothing, then eases towards 92% and stops. It never
+    completes on its own — the bar goes away because the new page replaced this
+    one, which is the only completion signal we actually have.
   */
-  .loading-bar.is-loading {
-    opacity: 1;
+  .loading-bar.is-loading .loading-bar__fill {
     animation: loading-bar-advance 12s cubic-bezier(0, 0.75, 0.25, 1) forwards;
   }
 
   @keyframes loading-bar-advance {
     from {
-      width: 0;
+      width: 15%;
     }
     to {
       width: 92%;
@@ -56,12 +61,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .loading-bar {
-      transition: none;
-    }
-
     /* Presence, not movement. */
-    .loading-bar.is-loading {
+    .loading-bar.is-loading .loading-bar__fill {
       animation: none;
       width: 100%;
     }
@@ -74,26 +75,19 @@
   const bar = document.getElementById('loading-bar');
 
   if (bar) {
-    /** Below this, a navigation reads as instant and a flash of bar would only make it feel slower. */
-    const SHOW_AFTER_MS = 150;
-    /** If a load is cancelled we never hear about it — don't leave the bar up forever. */
+    /** If a load is cancelled we never hear about it — don't leave the bar filled forever. */
     const GIVE_UP_AFTER_MS = 20_000;
 
-    let showTimer: number | undefined;
     let giveUpTimer: number | undefined;
 
     function show() {
-      if (showTimer !== undefined) return; // already waiting on a navigation
-      showTimer = window.setTimeout(() => {
-        bar!.classList.add('is-loading');
-      }, SHOW_AFTER_MS);
+      bar!.classList.add('is-loading');
+      window.clearTimeout(giveUpTimer);
       giveUpTimer = window.setTimeout(hide, GIVE_UP_AFTER_MS);
     }
 
     function hide() {
-      window.clearTimeout(showTimer);
       window.clearTimeout(giveUpTimer);
-      showTimer = undefined;
       giveUpTimer = undefined;
       bar!.classList.remove('is-loading');
     }
@@ -120,7 +114,7 @@
 
     /*
       A page restored from the back/forward cache comes back with the DOM it was
-      frozen with — including a half-finished bar from the click that left it.
+      frozen with — including a half-finished fill from the click that left it.
       pageshow fires on restore as well as first load, so this clears both.
     */
     window.addEventListener('pageshow', hide);
