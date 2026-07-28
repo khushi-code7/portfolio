@@ -7,6 +7,10 @@ import { site } from '../data/site';
   <div class="landing">
     <h1 class="landing__title">{site.greeting}</h1>
     <p class="landing__note">Website coming soon</p>
+    <p class="landing__building">
+      <span class="landing__dot" aria-hidden="true"></span>
+      loading
+    </p>
   </div>
 </Base>
 
@@ -41,5 +45,50 @@ import { site } from '../data/site';
     font-size: 0.8125rem;
     letter-spacing: 0.08em;
     text-transform: lowercase;
+  }
+
+  /* Deliberately the smallest thing on the page. It is not reporting on a
+     real network request — it is there so a stranger landing here reads the
+     page as in progress rather than abandoned. The pulsing dot does that
+     work; the word alone would just sit there. */
+  .landing__building {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    /* Pulls it up under the note so the two read as one block rather than
+       two separate lines the container gap has pushed apart. */
+    margin: -0.75rem 0 0;
+    color: var(--text-muted);
+    opacity: 0.5;
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+  }
+
+  .landing__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: landing-pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes landing-pulse {
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scale(0.75);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing__dot {
+      animation: none;
+      opacity: 0.75;
+    }
   }
 </style>
