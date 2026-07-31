@@ -1,35 +1,53 @@
 /**
  * Every piece of "who am I" text on the site comes from this file.
- * Edit here, not in the components.
+ *
+ * Everything in [square brackets] is a placeholder waiting for you.
+ * See PLACEHOLDERS.md in the project root for what each letter is.
  */
 
 export const site = {
-  name: 'Khushi',
-  // The homepage headline — the first line anyone reads.
-  greeting: "Hey! Welcome to Khushi's portfolio.",
+  name: '[a]',
   // Shown in the browser tab and search results, after the page title.
-  title: 'Khushi',
-  tagline: 'Designer and developer',
-  // One or two sentences. This is the first thing anyone reads on the homepage.
-  intro:
-    'I build things for the web — interfaces that stay out of the way, and the systems underneath them. Currently focused on design engineering and front-end architecture.',
-  // Used for absolute URLs in the sitemap, RSS feed and canonical tags. This is
-  // the live domain; Vercel also serves the site at its own *.vercel.app URL.
+  title: '[a]',
+  tagline: '[b]',
+  // The <meta name="description"> default, and the fallback social-card text.
+  // One sentence that would make sense to a stranger.
+  intro: '[c]',
+  // Used for absolute URLs in the sitemap, RSS feed and canonical tags.
   url: 'https://www.khushibajaj.com',
-  email: 'avenueabundance9@gmail.com',
-  // Any link with an empty string is hidden automatically.
+  email: '[d]',
+  /**
+   * The homepage portrait. Drop a photo into `public/` and put its filename
+   * here — `/khushi.jpg`. Set it to '' and the homepage lays itself out
+   * without a photo, no gap left behind.
+   *
+   * A square crop from the shoulders up works best; around 800×800 is plenty.
+   */
+  portrait: '/portrait-placeholder.svg',
+  portraitAlt: '[a]',
+  /**
+   * The homepage introduction. Two short paragraphs — this is the whole page
+   * above your recent work, so it should say who you are and what you work on.
+   */
+  homeIntro: ['[e]', '[f]'],
+  /**
+   * Profile links. A link with an empty href is hidden automatically, so these
+   * stay off the site entirely until you fill them in — nothing to remove.
+   */
   links: [
-    { label: 'Email', href: 'mailto:avenueabundance9@gmail.com' },
-    { label: 'GitHub', href: '' },
-    { label: 'LinkedIn', href: '' },
-    { label: 'Twitter', href: '' },
+    { label: 'Email', href: '' }, // [g] — mailto:you@example.com
+    { label: 'LinkedIn', href: '' }, // [h]
+    { label: 'ORCID', href: '' }, // [i]
+    { label: 'Google Scholar', href: '' }, // [j]
   ],
 } as const;
 
 export const nav = [
-  { label: 'Work', href: '/projects/' },
   { label: 'Writing', href: '/writing/' },
+  { label: 'Research', href: '/research/' },
+  { label: 'CV', href: '/cv/' },
   { label: 'About', href: '/about/' },
+  { label: 'Contact', href: '/contact/' },
 ] as const;
 
 /** Links with a real href, in nav/footer display order. */

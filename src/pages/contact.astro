@@ -1,0 +1,51 @@
+---
+/**
+ * Contact.
+ *
+ * Deliberately holds no real contact details yet. Fill `email` and the `links`
+ * in `src/data/site.ts` and this page picks them up — the email line below
+ * becomes a working mailto link, and the "Elsewhere" list appears on its own.
+ */
+import Base from '../layouts/Base.astro';
+import { site, activeLinks } from '../data/site';
+
+const description = '[bv]';
+const hasEmail = !site.email.startsWith('[');
+---
+
+<Base title="Contact" description={description}>
+  <div class="page-head">
+    <h1>Contact</h1>
+    <p>[bw]</p>
+  </div>
+
+  <div class="prose">
+    <p>
+      {hasEmail ? <a href={`mailto:${site.email}`}>{site.email}</a> : site.email}
+    </p>
+
+    <p>[bx]</p>
+    <ul>
+      <li>[by]</li>
+      <li>[bz]</li>
+      <li>[ca]</li>
+    </ul>
+
+    {
+      activeLinks.length > 0 && (
+        <>
+          <h2>Elsewhere</h2>
+          <ul>
+            {activeLinks
+              .filter((link) => link.label !== 'Email')
+              .map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+          </ul>
+        </>
+      )
+    }
+  </div>
+</Base>

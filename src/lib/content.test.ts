@@ -3,10 +3,13 @@ import { describe, expect, it } from 'vitest';
 import {
   absoluteUrl,
   byNewest,
+  displayYear,
   formatDate,
   isPublished,
+  provenance,
   publishedByNewest,
   readingTime,
+  showsUpdate,
   toISODate,
   visible,
 } from './content';
@@ -137,5 +140,69 @@ describe('absoluteUrl', () => {
     expect(absoluteUrl('/writing/', 'https://example.com')).toBe('https://example.com/writing/');
     expect(absoluteUrl('writing/', 'https://example.com/')).toBe('https://example.com/writing/');
     expect(absoluteUrl('/writing/', 'https://example.com/')).toBe('https://example.com/writing/');
+  });
+});
+
+describe('displayYear', () => {
+  it('falls back to the year of the date', () => {
+    expect(displayYear({ date: new Date('2026-01-21') })).toBe('2026');
+  });
+
+  it('reads the year in UTC, not the build machine’s timezone', () => {
+    // 1 Jan 00:00 UTC is still 2026 in Kolkata but 2025 in New York. Neither
+    // should change what the CV says.
+    expect(displayYear({ date: new Date('2026-01-01T00:00:00Z') })).toBe('2026');
+    expect(displayYear({ date: new Date('2025-12-31T23:59:00Z') })).toBe('2025');
+  });
+
+  it('prefers an explicit year so a range survives', () => {
+    expect(displayYear({ date: new Date('2024-06-01'), year: '2023–24' })).toBe('2023–24');
+  });
+
+  it('ignores a blank explicit year', () => {
+    expect(displayYear({ date: new Date('2024-06-01'), year: '   ' })).toBe('2024');
+  });
+
+  it('returns empty string for an invalid date', () => {
+    expect(displayYear({ date: new Date('not a date') })).toBe('');
+  });
+});
+
+describe('provenance', () => {
+  it('joins kind and venue', () => {
+    expect(provenance({ kind: 'Conference paper', venue: 'iMarC-V, IIM Shillong' })).toBe(
+      'Conference paper · iMarC-V, IIM Shillong',
+    );
+  });
+
+  it('leaves no dangling separator when there is no venue', () => {
+    expect(provenance({ kind: 'Research project' })).toBe('Research project');
+    expect(provenance({ kind: 'Research project', venue: '  ' })).toBe('Research project');
+  });
+});
+
+describe('showsUpdate', () => {
+  const published = new Date('2026-03-01');
+
+  it('is false when there is no update', () => {
+    expect(showsUpdate(published)).toBe(false);
+  });
+
+  it('is false when the update is the same day', () => {
+    expect(showsUpdate(published, new Date('2026-03-01T18:00:00Z'))).toBe(false);
+  });
+
+  it('is true when the update is later', () => {
+    expect(showsUpdate(published, new Date('2026-04-02'))).toBe(true);
+  });
+
+  it('is false when the update predates publication', () => {
+    // A typo in frontmatter should not render as a claim about history.
+    expect(showsUpdate(published, new Date('2026-02-01'))).toBe(false);
+  });
+
+  it('is false when either date is invalid', () => {
+    expect(showsUpdate(published, new Date('nope'))).toBe(false);
+    expect(showsUpdate(new Date('nope'), new Date('2026-04-02'))).toBe(false);
   });
 });

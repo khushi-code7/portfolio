@@ -6,14 +6,15 @@ import EntryList from '../../components/EntryList.astro';
 import { publishedByNewest } from '../../lib/content';
 
 const posts = publishedByNewest(await getCollection('writing'));
+
+const description = 'Articles on marketing, consumer attention and management research.';
 ---
 
-<Base title="Writing" description="Notes on design, code, and the space between them.">
+<Base title="Writing" description={description}>
   <div class="page-head">
     <h1>Writing</h1>
     <p>
-      Notes on design, code, and the space between them.
-      <a href="/rss.xml">RSS</a>.
+      {description} Posted whenever one is ready. Follow by <a href="/rss.xml">RSS</a>.
     </p>
   </div>
 
@@ -25,6 +26,6 @@ const posts = publishedByNewest(await getCollection('writing'));
       date: p.data.date,
       tags: p.data.tags,
     }))}
-    emptyMessage="No posts published yet."
+    emptyMessage="The first articles are on their way."
   />
 </Base>

@@ -2,7 +2,14 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 
 import Base from '../../layouts/Base.astro';
-import { formatDate, readingTime, toISODate, visible } from '../../lib/content';
+import {
+  formatDate,
+  readingTime,
+  toISODate,
+  visible,
+  publishedByNewest,
+  showsUpdate,
+} from '../../lib/content';
 
 export async function getStaticPaths() {
   const posts = visible(await getCollection('writing'));
@@ -13,8 +20,15 @@ type Props = { entry: CollectionEntry<'writing'> };
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, summary, date, tags } = entry.data;
+const { title, summary, date, updated, tags, series, references } = entry.data;
 const minutes = readingTime(entry.body ?? '');
+
+/** Other parts of the same series, oldest first — reading order. */
+const siblings = series
+  ? publishedByNewest(await getCollection('writing'))
+      .filter((p) => p.data.series === series)
+      .reverse()
+  : [];
 ---
 
 <Base title={title} description={summary} type="article">
@@ -23,6 +37,11 @@ const minutes = readingTime(entry.body ?? '');
       <div class="post-head__meta">
         <time datetime={toISODate(date)}>{formatDate(date)}</time>
         <span class="dot">{minutes} min read</span>
+        {
+          showsUpdate(date, updated) && (
+            <span class="dot">Updated {formatDate(updated!)}</span>
+          )
+        }
       </div>
       <h1>{title}</h1>
       <p>{summary}</p>
@@ -41,6 +60,38 @@ const minutes = readingTime(entry.body ?? '');
     <div class="prose">
       <Content />
     </div>
+
+    {
+      references.length > 0 && (
+        <section class="references">
+          <h2>References</h2>
+          <ol>
+            {references.map((reference) => (
+              <li>{reference.href ? <a href={reference.href}>{reference.text}</a> : reference.text}</li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      siblings.length > 1 && (
+        <nav class="series" aria-label={`Series: ${series}`}>
+          <h2>{series}</h2>
+          <ol>
+            {siblings.map((post) => (
+              <li aria-current={post.id === entry.id ? 'page' : undefined}>
+                {post.id === entry.id ? (
+                  <span>{post.data.title}</span>
+                ) : (
+                  <a href={`/writing/${post.id}/`}>{post.data.title}</a>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
   </article>
 
   <a class="back-link" href="/writing/">← All writing</a>

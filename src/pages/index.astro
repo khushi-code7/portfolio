@@ -1,94 +1,103 @@
 ---
+/**
+ * The homepage: a portrait, a short introduction, and the most recent things
+ * she has written and researched.
+ *
+ * Both the sites this was modelled on lead with a photo and a few sentences,
+ * then list recent work — the page should tell a stranger who is writing and
+ * what she works on without them clicking anything.
+ *
+ * Everything below the intro appears on its own as content is added. With no
+ * articles yet the page is just the introduction, which is the right thing for
+ * it to be.
+ */
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { site } from '../data/site';
+import { site, activeLinks } from '../data/site';
+import { publishedByNewest, formatDate, toISODate, displayYear, provenance } from '../lib/content';
+
+const recentWriting = publishedByNewest(await getCollection('writing')).slice(0, 4);
+const recentResearch = publishedByNewest(await getCollection('research')).slice(0, 3);
 ---
 
-<Base bare>
-  <div class="landing">
-    <h1 class="landing__title">{site.greeting}</h1>
-    <p class="landing__note">Website coming soon</p>
-    <p class="landing__building">
-      <span class="landing__dot" aria-hidden="true"></span>
-      loading
-    </p>
+<Base description={site.intro}>
+  <div class="profile">
+    {
+      site.portrait && (
+        <img class="profile__portrait" src={site.portrait} alt={site.portraitAlt} width="400" height="400" />
+      )
+    }
+
+    <div class="profile__body">
+      <h1>{site.name}</h1>
+      <p class="profile__role">{site.tagline}</p>
+
+      {site.homeIntro.map((paragraph) => <p class="profile__intro">{paragraph}</p>)}
+
+      {
+        activeLinks.length > 0 && (
+          <ul class="profile__links">
+            {activeLinks.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
   </div>
+
+  {
+    recentWriting.length > 0 && (
+      <section class="section">
+        <div class="section__head">
+          <h2>Recent writing</h2>
+          <a class="section__more" href="/writing/">
+            All writing →
+          </a>
+        </div>
+        <ul class="home-list">
+          {recentWriting.map((post) => (
+            <li>
+              <a href={`/writing/${post.id}/`}>
+                <h3>{post.data.title}</h3>
+              </a>
+              <p class="home-list__summary">{post.data.summary}</p>
+              <p class="home-list__meta">
+                <time datetime={toISODate(post.data.date)}>{formatDate(post.data.date)}</time>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    recentResearch.length > 0 && (
+      <section class="section">
+        <div class="section__head">
+          <h2>Research</h2>
+          <a class="section__more" href="/research/">
+            All research →
+          </a>
+        </div>
+        <ul class="home-list">
+          {recentResearch.map((entry) => (
+            <li>
+              <a href={`/research/${entry.id}/`}>
+                <h3>{entry.data.title}</h3>
+              </a>
+              <p class="home-list__summary">{entry.data.summary}</p>
+              <p class="home-list__meta">
+                <span>{displayYear(entry.data)}</span>
+                <span class="dot">{provenance(entry.data)}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 </Base>
-
-<style>
-  /* Full-viewport centred hero. Nothing else on the page, so the layout
-     lives here rather than in global.css. */
-  .landing {
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-    padding: var(--gutter);
-    text-align: center;
-  }
-
-  .landing__title {
-    margin: 0;
-    max-width: 20ch;
-    /* Big on desktop, still comfortable on a narrow phone. */
-    font-size: clamp(2.25rem, 8vw, 5rem);
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
-  }
-
-  .landing__note {
-    margin: 0;
-    color: var(--text-muted);
-    opacity: 0.6;
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-  }
-
-  /* Deliberately the smallest thing on the page. It is not reporting on a
-     real network request — it is there so a stranger landing here reads the
-     page as in progress rather than abandoned. The pulsing dot does that
-     work; the word alone would just sit there. */
-  .landing__building {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    /* Pulls it up under the note so the two read as one block rather than
-       two separate lines the container gap has pushed apart. */
-    margin: -0.75rem 0 0;
-    color: var(--text-muted);
-    opacity: 0.5;
-    font-size: 0.625rem;
-    letter-spacing: 0.16em;
-    text-transform: lowercase;
-  }
-
-  .landing__dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: landing-pulse 1.8s ease-in-out infinite;
-  }
-
-  @keyframes landing-pulse {
-    0%,
-    100% {
-      opacity: 0.2;
-      transform: scale(0.75);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .landing__dot {
-      animation: none;
-      opacity: 0.75;
-    }
-  }
-</style>

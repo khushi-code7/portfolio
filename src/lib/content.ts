@@ -79,3 +79,43 @@ export function readingTime(body: string): number {
 export function absoluteUrl(path: string, origin: string): string {
   return `${origin.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 }
+
+/* ---------------------------------------------------------------
+   Research
+   --------------------------------------------------------------- */
+
+export type Yearly = { date: Date; year?: string };
+
+/**
+ * Research is shown by year, never by full date — nobody cites the day a paper
+ * was presented. An explicit `year` in the frontmatter wins so a piece can span
+ * a range ('2023–24'); otherwise the date supplies it.
+ */
+export function displayYear({ date, year }: Yearly): string {
+  if (year && year.trim()) return year.trim();
+  if (Number.isNaN(date.getTime())) return '';
+  return String(date.getUTCFullYear());
+}
+
+/**
+ * The grey line under a research title: "Conference paper · iMarC-V, IIM
+ * Shillong". Drops the separator when there is no venue rather than leaving a
+ * dangling dot.
+ */
+export function provenance({ kind, venue }: { kind: string; venue?: string }): string {
+  return [kind, venue?.trim()].filter(Boolean).join(' · ');
+}
+
+/* ---------------------------------------------------------------
+   Writing
+   --------------------------------------------------------------- */
+
+/**
+ * Whether to show an "Updated" line. Only true when the revision is on a later
+ * day than publication — an `updated` set to the publication date is noise, and
+ * one set earlier is a typo we should not render as fact.
+ */
+export function showsUpdate(date: Date, updated?: Date): boolean {
+  if (!updated || Number.isNaN(updated.getTime()) || Number.isNaN(date.getTime())) return false;
+  return toISODate(updated) > toISODate(date);
+}

@@ -3,15 +3,23 @@ import Base from './Base.astro';
 
 /**
  * Layout for standalone Markdown pages in src/pages (About, colophon, uses…).
- * Astro passes the page's frontmatter in as props.
+ *
+ * Astro hands a Markdown page's frontmatter to its layout as a single
+ * `frontmatter` prop — not as top-level props. Reading them directly gives you
+ * an empty <h1> and no page title, and nothing warns you about it, so the
+ * fallback below is deliberate: a missing title should be obvious on the page.
  */
-interface Props {
+interface Frontmatter {
   title: string;
   description?: string;
   lede?: string;
 }
 
-const { title, description, lede } = Astro.props;
+interface Props {
+  frontmatter: Frontmatter;
+}
+
+const { title, description, lede } = Astro.props.frontmatter;
 ---
 
 <Base title={title} description={description}>

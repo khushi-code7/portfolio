@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+
+import Base from '../../layouts/Base.astro';
+import { publishedByNewest, displayYear, provenance } from '../../lib/content';
+
+const research = publishedByNewest(await getCollection('research'));
+
+const description =
+  'Papers, dissertations and research projects on marketing, consumer behaviour and organisational practice.';
+---
+
+<Base title="Research" description={description}>
+  <div class="page-head">
+    <h1>Research</h1>
+    <p>{description}</p>
+  </div>
+
+  <ol class="entry-list">
+    {
+      research.map((entry) => (
+        <li>
+          <a class="entry" href={`/research/${entry.id}/`}>
+            <h2 class="entry__title">{entry.data.title}</h2>
+            <p class="entry__summary">{entry.data.summary}</p>
+            <p class="entry__meta">
+              <span>{displayYear(entry.data)}</span>
+              <span class="dot">{provenance(entry.data)}</span>
+            </p>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</Base>

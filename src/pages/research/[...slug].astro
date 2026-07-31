@@ -1,0 +1,64 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+import Base from '../../layouts/Base.astro';
+import { visible, displayYear, provenance } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const entries = visible(await getCollection('research'));
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+type Props = { entry: CollectionEntry<'research'> };
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, summary, methods, tags, url } = entry.data;
+---
+
+<Base title={title} description={summary} type="article">
+  <article>
+    <header class="post-head">
+      <div class="post-head__meta">
+        <span>{displayYear(entry.data)}</span>
+        <span class="dot">{provenance(entry.data)}</span>
+      </div>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+
+      {
+        methods.length > 0 && (
+          <p class="post-head__methods">
+            <span class="label">Methods</span> {methods.join(', ')}
+          </p>
+        )
+      }
+
+      {
+        url && (
+          <p class="link-row">
+            <a class="button" href={url}>
+              Read the paper →
+            </a>
+          </p>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      tags.length > 0 && (
+        <ul class="tags" style="margin-top:2.5rem">
+          {tags.map((tag) => (
+            <li class="tag">{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+  </article>
+
+  <a class="back-link" href="/research/">← All research</a>
+</Base>

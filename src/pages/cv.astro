@@ -1,0 +1,111 @@
+---
+/**
+ * The CV.
+ *
+ * Everything here comes from `src/data/cv.ts` and the research collection —
+ * there is no second copy of any of it. Printing this page (Ctrl/Cmd+P) gives
+ * the PDF, so the two can never disagree.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import CvSection from '../components/CvSection.astro';
+import { site } from '../data/site';
+import { profile, summary, skills, sectionsBeforeResearch, sectionsAfterResearch } from '../data/cv';
+import { publishedByNewest, displayYear, provenance } from '../lib/content';
+
+const research = publishedByNewest(await getCollection('research'));
+---
+
+<Base title="CV" description={site.intro}>
+  <article class="cv">
+    <header class="cv__head">
+      <h1>{profile.name}</h1>
+      <p class="cv__strapline">{profile.strapline}</p>
+
+      <ul class="cv__contact">
+        <li>{profile.location}</li>
+        <li>
+          {
+            profile.email.startsWith('[') ? (
+              profile.email
+            ) : (
+              <a href={`mailto:${profile.email}`}>{profile.email}</a>
+            )
+          }
+        </li>
+        <li>
+          {
+            profile.linkedin.href ? (
+              <a href={profile.linkedin.href}>{profile.linkedin.label}</a>
+            ) : (
+              profile.linkedin.label
+            )
+          }
+        </li>
+        {profile.phone && <li class="print-only">{profile.phone}</li>}
+      </ul>
+    </header>
+
+    <div class="cv__summary">
+      {summary.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+
+    <p class="cv__actions screen-only">
+      <button type="button" class="button" data-print>Save this page as a PDF</button>
+      <span class="cv__hint">or press Ctrl / Cmd + P</span>
+    </p>
+
+    {sectionsBeforeResearch.map((section) => <CvSection section={section} />)}
+
+    <section class="cv-section" id="research">
+      <h2>Research</h2>
+      <ol class="cv-list">
+        {
+          research.map((entry) => (
+            <li class="cv-entry">
+              <div class="cv-entry__main">
+                <h3 class="cv-entry__title">
+                  <a href={`/research/${entry.id}/`}>{entry.data.title}</a>
+                </h3>
+                <p class="cv-entry__where">{provenance(entry.data)}</p>
+                <p class="cv-entry__note">{entry.data.summary}</p>
+              </div>
+              <p class="cv-entry__when">{displayYear(entry.data)}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="cv-section__more screen-only">
+        <a href="/research/">All research in detail →</a>
+      </p>
+    </section>
+
+    {sectionsAfterResearch.map((section) => <CvSection section={section} />)}
+
+    <section class="cv-section" id="skills">
+      <h2>Skills and tools</h2>
+      <dl class="cv-skills">
+        {
+          skills.map((group) => (
+            <div class="cv-skills__row">
+              <dt>{group.group}</dt>
+              <dd>
+                <ul>
+                  {group.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+  </article>
+</Base>
+
+<script>
+  // The only script on the site. Without it the page still works — the hint
+  // beside the button gives the keyboard shortcut.
+  document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
+</script>
