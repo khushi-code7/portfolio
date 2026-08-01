@@ -12,11 +12,11 @@ import {
 } from '../../lib/content';
 
 export async function getStaticPaths() {
-  const posts = visible(await getCollection('writing'));
+  const posts = visible(await getCollection('articles'));
   return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
-type Props = { entry: CollectionEntry<'writing'> };
+type Props = { entry: CollectionEntry<'articles'> };
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
@@ -25,7 +25,7 @@ const minutes = readingTime(entry.body ?? '');
 
 /** Other parts of the same series, oldest first — reading order. */
 const siblings = series
-  ? publishedByNewest(await getCollection('writing'))
+  ? publishedByNewest(await getCollection('articles'))
       .filter((p) => p.data.series === series)
       .reverse()
   : [];
@@ -84,7 +84,7 @@ const siblings = series
                 {post.id === entry.id ? (
                   <span>{post.data.title}</span>
                 ) : (
-                  <a href={`/writing/${post.id}/`}>{post.data.title}</a>
+                  <a href={`/articles/${post.id}/`}>{post.data.title}</a>
                 )}
               </li>
             ))}
@@ -94,5 +94,5 @@ const siblings = series
     }
   </article>
 
-  <a class="back-link" href="/writing/">← All writing</a>
+  <a class="back-link" href="/articles/">← All writing</a>
 </Base>

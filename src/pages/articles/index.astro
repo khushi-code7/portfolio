@@ -5,7 +5,7 @@ import Base from '../../layouts/Base.astro';
 import EntryList from '../../components/EntryList.astro';
 import { publishedByNewest } from '../../lib/content';
 
-const posts = publishedByNewest(await getCollection('writing'));
+const posts = publishedByNewest(await getCollection('articles'));
 
 const description = 'Articles on marketing, consumer attention and management research.';
 ---
@@ -20,7 +20,7 @@ const description = 'Articles on marketing, consumer attention and management re
 
   <EntryList
     entries={posts.map((p) => ({
-      href: `/writing/${p.id}/`,
+      href: `/articles/${p.id}/`,
       title: p.data.title,
       summary: p.data.summary,
       date: p.data.date,

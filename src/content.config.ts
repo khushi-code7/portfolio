@@ -35,12 +35,12 @@ const research = defineCollection({
 });
 
 /**
- * Essays. One file per piece in `src/content/writing/`.
+ * Articles. One file per piece in `src/content/articles/`.
  * There is deliberately no cadence promised anywhere on the site — four good
  * essays a year reads as a considered series, four blog posts a year reads dead.
  */
-const writing = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/writing' }),
+const articles = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/articles' }),
   schema: z.object({
     title: z.string(),
     summary: z.string(),
@@ -49,7 +49,13 @@ const writing = defineCollection({
     // original date so a changed argument leaves a visible trail.
     updated: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
-    // Groups multi-part essays. Any string; pieces sharing it are linked together.
+    /**
+     * Optional picture beside the article on the homepage. Put the image in
+     * `public/` and write its filename here — `/my-chart.png`. Leave it out and
+     * the title and summary simply fill the space.
+     */
+    thumbnail: z.string().optional(),
+    // Groups multi-part articles. Any string; pieces sharing it are linked together.
     series: z.string().optional(),
     // Sources, rendered as a reference list at the foot of the essay.
     references: z
@@ -64,4 +70,4 @@ const writing = defineCollection({
   }),
 });
 
-export const collections = { research, writing };
+export const collections = { research, articles };

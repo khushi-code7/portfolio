@@ -26,8 +26,9 @@ export const site = {
   portrait: '/portrait-placeholder.svg',
   portraitAlt: '[a]',
   /**
-   * The homepage introduction. Two short paragraphs — this is the whole page
-   * above your recent work, so it should say who you are and what you work on.
+   * The About box on the homepage — the bordered panel under your name.
+   * Two short paragraphs. This is the only place your bio lives; there is no
+   * separate About page, exactly as you drew it.
    */
   homeIntro: ['[e]', '[f]'],
   /**
@@ -42,12 +43,15 @@ export const site = {
   ],
 } as const;
 
+/**
+ * Three tabs, as drawn. About is not one of them — it is the box on the
+ * homepage. Research is not one either; it lives inside the CV page, which
+ * links through to the full list at /research/.
+ */
 export const nav = [
-  { label: 'Writing', href: '/writing/' },
-  { label: 'Research', href: '/research/' },
-  { label: 'CV', href: '/cv/' },
-  { label: 'About', href: '/about/' },
   { label: 'Contact', href: '/contact/' },
+  { label: 'CV', href: '/cv/' },
+  { label: 'Articles', href: '/articles/' },
 ] as const;
 
 /** Links with a real href, in nav/footer display order. */

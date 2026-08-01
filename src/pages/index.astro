@@ -1,103 +1,71 @@
 ---
 /**
- * The homepage: a portrait, a short introduction, and the most recent things
- * she has written and researched.
+ * The homepage, built from your sketch.
  *
- * Both the sites this was modelled on lead with a photo and a few sentences,
- * then list recent work — the page should tell a stranger who is writing and
- * what she works on without them clicking anything.
+ *   nav top right      Contact | CV | Articles
+ *   circular photo     with your name beside it
+ *   icon links         envelope and LinkedIn, hidden until they have addresses
+ *   About box          a bordered panel
+ *   Articles           title, summary, and an optional thumbnail
  *
- * Everything below the intro appears on its own as content is added. With no
- * articles yet the page is just the introduction, which is the right thing for
- * it to be.
+ * Articles list themselves — publishing one puts it at the top. This page never
+ * needs editing to add a piece of writing.
  */
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { site, activeLinks } from '../data/site';
-import { publishedByNewest, formatDate, toISODate, displayYear, provenance } from '../lib/content';
+import IconLink from '../components/IconLink.astro';
+import { site } from '../data/site';
+import { publishedByNewest } from '../lib/content';
 
-const recentWriting = publishedByNewest(await getCollection('writing')).slice(0, 4);
-const recentResearch = publishedByNewest(await getCollection('research')).slice(0, 3);
+const articles = publishedByNewest(await getCollection('articles'));
+
+const linkFor = (label: string) => site.links.find((link) => link.label === label)?.href ?? '';
 ---
 
 <Base description={site.intro}>
-  <div class="profile">
+  <header class="identity">
     {
       site.portrait && (
-        <img class="profile__portrait" src={site.portrait} alt={site.portraitAlt} width="400" height="400" />
+        <img class="identity__photo" src={site.portrait} alt={site.portraitAlt} width="400" height="400" />
       )
     }
-
-    <div class="profile__body">
-      <h1>{site.name}</h1>
-      <p class="profile__role">{site.tagline}</p>
-
-      {site.homeIntro.map((paragraph) => <p class="profile__intro">{paragraph}</p>)}
-
-      {
-        activeLinks.length > 0 && (
-          <ul class="profile__links">
-            {activeLinks.map((link) => (
-              <li>
-                <a href={link.href}>{link.label}</a>
-              </li>
-            ))}
-          </ul>
-        )
-      }
+    <div>
+      <h1 class="identity__name">{site.name}</h1>
+      <div class="icon-links">
+        <IconLink href={linkFor('Email')} label="Email" icon="mail" />
+        <IconLink href={linkFor('LinkedIn')} label="LinkedIn" icon="linkedin" />
+      </div>
     </div>
-  </div>
+  </header>
 
-  {
-    recentWriting.length > 0 && (
-      <section class="section">
-        <div class="section__head">
-          <h2>Recent writing</h2>
-          <a class="section__more" href="/writing/">
-            All writing →
-          </a>
-        </div>
-        <ul class="home-list">
-          {recentWriting.map((post) => (
-            <li>
-              <a href={`/writing/${post.id}/`}>
-                <h3>{post.data.title}</h3>
-              </a>
-              <p class="home-list__summary">{post.data.summary}</p>
-              <p class="home-list__meta">
-                <time datetime={toISODate(post.data.date)}>{formatDate(post.data.date)}</time>
-              </p>
+  <section class="about-box" aria-label="About">
+    {site.homeIntro.map((paragraph) => <p>{paragraph}</p>)}
+  </section>
+
+  <section class="articles">
+    <h2>Articles</h2>
+
+    {
+      articles.length === 0 ? (
+        <p class="empty">Nothing published yet.</p>
+      ) : (
+        <ul class="article-list">
+          {articles.map((article) => (
+            <li class="article">
+              <span class="article__dot" aria-hidden="true" />
+              <div class="article__text">
+                <h3>
+                  <a href={`/articles/${article.id}/`}>{article.data.title}</a>
+                </h3>
+                <p>{article.data.summary}</p>
+              </div>
+              {article.data.thumbnail && (
+                <img class="article__thumb" src={article.data.thumbnail} alt="" width="240" height="160" />
+              )}
             </li>
           ))}
         </ul>
-      </section>
-    )
-  }
-
-  {
-    recentResearch.length > 0 && (
-      <section class="section">
-        <div class="section__head">
-          <h2>Research</h2>
-          <a class="section__more" href="/research/">
-            All research →
-          </a>
-        </div>
-        <ul class="home-list">
-          {recentResearch.map((entry) => (
-            <li>
-              <a href={`/research/${entry.id}/`}>
-                <h3>{entry.data.title}</h3>
-              </a>
-              <p class="home-list__summary">{entry.data.summary}</p>
-              <p class="home-list__meta">
-                <span>{displayYear(entry.data)}</span>
-                <span class="dot">{provenance(entry.data)}</span>
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )
-  }
+      )
+    }
+  </section>
 </Base>

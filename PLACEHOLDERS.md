@@ -11,9 +11,8 @@ Search the project for `[` to find any you have missed. Run `npm run dev` and
 the placeholders are visible on the page, so you can work through them in the
 browser rather than in the code.
 
-One oddity worth knowing: `[b]` appears on the homepage as `[B]`. The role line
-under your name is styled in capitals, so it uppercases whatever you put there.
-It is still `[b]` in the file.
+`[b]` is the one you will never see on the page — it is your role line, and it
+only appears in the browser tab and in Google results. Worth filling in anyway.
 
 ---
 
@@ -21,12 +20,13 @@ It is still `[b]` in the file.
 
 Fill these and the site stops looking like a template:
 
-`[a]` your name · `[b]` your role line · `[e]` and `[f]` the homepage
-introduction · `[c]` the site description.
+`[a]` your name · `[e]` and `[f]` the About box · `[c]` the site
+description · `[g]` and `[h]` your email and LinkedIn, which switch the two
+icons under your name on.
 
 ---
 
-## `src/data/site.ts` — name, links, homepage intro
+## `src/data/site.ts` — name, links, the About box
 
 | | What it is |
 | --- | --- |
@@ -34,8 +34,8 @@ introduction · `[c]` the site description.
 | `[b]` | Role line under your name — e.g. "Marketing and consumer behaviour research". |
 | `[c]` | One sentence describing the site. Used by Google and link previews. |
 | `[d]` | Your email address. Also used by the CV and Contact pages. |
-| `[e]` | Homepage introduction, first paragraph. |
-| `[f]` | Homepage introduction, second paragraph. |
+| `[e]` | The About box on the homepage, first paragraph. |
+| `[f]` | The About box on the homepage, second paragraph. |
 | `[g]` | Email link — write it as `mailto:you@example.com`. |
 | `[h]` | LinkedIn profile URL. |
 | `[i]` | ORCID URL. Free to register, works with no publications. |
@@ -114,7 +114,7 @@ Also set `date:` — it sorts the list, and only the year is ever shown, so an
 approximate month is fine. `kind:` is one of `Conference paper`,
 `Dissertation`, `Research project` or `Seminar paper`.
 
-## `src/content/writing/` — articles
+## `src/content/articles/` — articles
 
 `example-article.md` exists so you can see how an article looks. Rename it and
 write over it, or delete it and start from `template.md`.
@@ -128,18 +128,12 @@ write over it, or delete it and start from `template.md`.
 | `[bl]` | A section heading. |
 | `[bm]` | The rest of the article. |
 
+Add `thumbnail: /your-image.png` to an article to show a picture beside it on
+the homepage — the small rectangle you drew on the right of each row. Put the
+image in `public/` first. Leave it out and the title and summary fill the space.
+
 `template.md` documents the optional fields — `updated`, `series`,
 `references`. It stays a draft, so it never appears on the live site.
-
-## `src/pages/about.md` — the longer bio
-
-| | What it is |
-| --- | --- |
-| `[bn]` | Page description for search results. |
-| `[bo]` | One line under the "About" heading. |
-| `[bp]` `[bq]` | Opening paragraphs. |
-| `[br]` `[bt]` | Section headings — "How I work" and the like. |
-| `[bs]` `[bu]` | The text under each. |
 
 ## `src/pages/contact.astro` — Contact
 
@@ -159,5 +153,6 @@ Not a letter — a file. Drop your image into `public/`, then set `portrait` in
 `src/data/site.ts` to `/your-file.jpg`. A square crop from the shoulders up
 works best; around 800×800 is plenty.
 
-Right now the site uses `/portrait-placeholder.svg`, a grey stand-in.
+Right now the site uses `/portrait-placeholder.svg`, a grey stand-in. It is the
+circle you drew, top left of the homepage.
 Setting `portrait: ''` removes the photo and the homepage re-flows with no gap.
