@@ -6,7 +6,7 @@ import { publishedByNewest } from '../lib/content';
 import { site } from '../data/site';
 
 export async function GET(context: APIContext) {
-  const posts = publishedByNewest(await getCollection('articles'));
+  const posts = publishedByNewest(await getCollection('writing'));
 
   return rss({
     title: `${site.title} — Writing`,
@@ -16,7 +16,7 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       description: post.data.summary,
       pubDate: post.data.date,
-      link: `/articles/${post.id}/`,
+      link: `/writing/${post.id}/`,
     })),
     customData: '<language>en</language>',
   });

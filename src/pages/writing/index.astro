@@ -5,9 +5,9 @@ import Base from '../../layouts/Base.astro';
 import EntryList from '../../components/EntryList.astro';
 import { publishedByNewest } from '../../lib/content';
 
-const posts = publishedByNewest(await getCollection('articles'));
+const posts = publishedByNewest(await getCollection('writing'));
 
-const description = 'Articles on marketing, consumer attention and management research.';
+const description = 'Writing on marketing, consumer behaviour and management research.';
 ---
 
 <Base title="Writing" description={description}>
@@ -20,12 +20,12 @@ const description = 'Articles on marketing, consumer attention and management re
 
   <EntryList
     entries={posts.map((p) => ({
-      href: `/articles/${p.id}/`,
+      href: `/writing/${p.id}/`,
       title: p.data.title,
       summary: p.data.summary,
       date: p.data.date,
       tags: p.data.tags,
     }))}
-    emptyMessage="The first articles are on their way."
+    emptyMessage="The first pieces are on their way."
   />
 </Base>

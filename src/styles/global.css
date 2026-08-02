@@ -5,23 +5,27 @@
    --------------------------------------------------------------- */
 
 :root {
-  /* Warm serif for anything Khushi wrote; the sans is only for small
-     mechanical text — nav, dates, labels. Palatino first, Georgia everywhere
-     it is missing. No webfonts: the page is on screen before you blink. */
+  /* Three roles, two families. A high-contrast display serif for titles, a
+     text serif for body copy, and the sans for mechanical text only — nav,
+     dates, labels. Sitka is a Windows face; elsewhere this falls back to
+     Palatino or Georgia, which is warmer and lower contrast but perfectly
+     good. No webfonts: the page is on screen before you blink. */
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
     Arial, sans-serif;
-  --font-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, Cambria, serif;
+  --font-display: 'Sitka Banner', 'Sitka Display', 'Baskerville Old Face', 'Book Antiqua',
+    Palatino, Georgia, serif;
+  --font-serif: 'Sitka Text', 'Book Antiqua', 'Palatino Linotype', Palatino, Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* "Navy on cool grey". Cool paper, deep navy accent. */
-  --bg: #f2f4f7;
-  --bg-raised: #fbfcfd;
-  --text: #151a22;
-  --text-muted: #6b7280;
-  --border: #dbe0e8;
-  --accent: #1d3f70;
-  --accent-soft: #e4eaf3;
-  --focus: #1d3f70;
+  /* "Terracotta on warm white". Warm paper, warm near-black, one clay accent. */
+  --bg: #fbfaf7;
+  --bg-raised: #f5f1ea;
+  --text: #33302b;
+  --text-muted: #7a7169;
+  --border: #e7e2d9;
+  --accent: #a43f24;
+  --accent-soft: #f4e9e3;
+  --focus: #a43f24;
 
   --measure: 68ch;
   --page-max: 46rem;
@@ -37,17 +41,18 @@
   --transition: 150ms ease;
 }
 
-/* A deep navy dark, so the site still feels like itself at night. */
+/* A warm dark — near-black with a brown cast, not a blue one — so the site
+   still feels like itself at night. The clay accent lifts to stay legible. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1622;
-    --bg-raised: #17202f;
-    --text: #e6ecf5;
-    --text-muted: #8fa0b8;
-    --border: #27354a;
-    --accent: #8fbdf0;
-    --accent-soft: #1b2536;
-    --focus: #8fbdf0;
+    --bg: #191612;
+    --bg-raised: #221e19;
+    --text: #ede7dc;
+    --text-muted: #a0968a;
+    --border: #332d26;
+    --accent: #de8a63;
+    --accent-soft: #2a2219;
+    --focus: #de8a63;
   }
 }
 
@@ -93,7 +98,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.015em;
@@ -190,7 +195,9 @@ hr {
 }
 
 /* The mechanical text of the site — everything that is not prose. Grouped
-   here rather than repeated so the serif/sans split stays a single decision. */
+   here rather than repeated so the serif/sans split stays a single decision.
+   Small, letterspaced and uppercase: this one rule is most of the reason the
+   page reads the way it does. */
 .site-nav,
 .site-footer,
 .section__more,
@@ -208,6 +215,16 @@ hr {
 .button,
 .back-link {
   font-family: var(--font-sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Two exceptions. The print hint names keys — "CTRL / CMD + P" shouted in
+   capitals reads worse, not better — and a summary is prose, not a label. */
+.cv__hint,
+.post-head__methods {
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 /* Wide content must scroll inside itself, never push the page sideways. */
@@ -279,7 +296,7 @@ main {
 }
 
 .site-header__name {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--step-1);
   font-weight: 600;
   text-decoration: none;
@@ -431,7 +448,7 @@ main {
 }
 
 .entry__title {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--step-1);
   font-weight: 600;
   line-height: 1.3;
@@ -760,6 +777,159 @@ main {
 
 .series [aria-current='page'] {
   color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------
+   CV
+   Two columns on every row: the entry on the left, its date on the
+   right. The date is the only thing a reader scans for, so it gets a
+   column of its own rather than being buried in the line.
+   --------------------------------------------------------------- */
+
+.cv__head {
+  margin-bottom: 1.5rem;
+}
+
+.cv__strapline {
+  font-size: var(--step-1);
+  color: var(--text-muted);
+  margin: 0.5rem 0 0.75rem;
+}
+
+.cv__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.cv__summary {
+  max-width: var(--measure);
+}
+
+.cv__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+}
+
+.cv__hint {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.cv-section {
+  margin-top: 2.5rem;
+}
+
+.cv-section > h2 {
+  font-size: var(--step-1);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cv-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 1.5rem;
+  align-items: baseline;
+  padding-block: 0.9rem;
+}
+
+.cv-entry + .cv-entry {
+  border-top: 1px solid var(--border);
+}
+
+.cv-entry__title {
+  font-size: var(--step-0);
+  font-weight: 650;
+  letter-spacing: 0;
+  margin: 0 0 0.15rem;
+}
+
+.cv-entry__where,
+.cv-entry__note {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: var(--measure);
+}
+
+.cv-entry__note {
+  margin-top: 0.3rem;
+}
+
+.cv-entry__where .sep {
+  margin-inline: 0.4rem;
+}
+
+.cv-entry__when {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cv-section__more {
+  margin: 0.9rem 0 0;
+  font-size: var(--step--1);
+}
+
+.cv-skills {
+  margin: 0;
+}
+
+.cv-skills__row {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  gap: 0 1.5rem;
+  padding-block: 0.9rem;
+}
+
+.cv-skills__row + .cv-skills__row {
+  border-top: 1px solid var(--border);
+}
+
+.cv-skills dt {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.cv-skills dd {
+  margin: 0;
+}
+
+.cv-skills dd ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+/* On a phone the date moves above the entry rather than squeezing it. */
+@media (max-width: 34rem) {
+  .cv-entry,
+  .cv-skills__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cv-entry__when {
+    order: -1;
+    margin-bottom: 0.2rem;
+  }
 }
 
 /* ---------------------------------------------------------------

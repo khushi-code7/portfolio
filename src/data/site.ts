@@ -1,21 +1,24 @@
 /**
  * Every piece of "who am I" text on the site comes from this file.
  *
- * Everything in [square brackets] is a placeholder waiting for you.
+ * Anything still in [square brackets] is a placeholder waiting for you.
  * See PLACEHOLDERS.md in the project root for what each letter is.
  */
 
 export const site = {
-  name: '[a]',
+  // The homepage renders this in capitals itself, so keep it in normal case
+  // here — it is also the browser tab, the footer and the RSS feed.
+  name: 'Khushi Bajaj',
   // Shown in the browser tab and search results, after the page title.
-  title: '[a]',
-  tagline: '[b]',
+  title: 'Khushi Bajaj',
+  tagline: 'Marketing and consumer behaviour',
   // The <meta name="description"> default, and the fallback social-card text.
   // One sentence that would make sense to a stranger.
-  intro: '[c]',
+  intro:
+    'Khushi Bajaj — marketing, with a focus on consumer behaviour. Writing, research and CV.',
   // Used for absolute URLs in the sitemap, RSS feed and canonical tags.
   url: 'https://www.khushibajaj.com',
-  email: '[d]',
+  email: 'khushi@khushibajaj.com',
   /**
    * The homepage portrait. Drop a photo into `public/` and put its filename
    * here — `/khushi.jpg`. Set it to '' and the homepage lays itself out
@@ -24,20 +27,23 @@ export const site = {
    * A square crop from the shoulders up works best; around 800×800 is plenty.
    */
   portrait: '/portrait-placeholder.svg',
-  portraitAlt: '[a]',
+  portraitAlt: 'Khushi Bajaj',
   /**
    * The About box on the homepage — the bordered panel under your name.
    * Two short paragraphs. This is the only place your bio lives; there is no
    * separate About page, exactly as you drew it.
    */
-  homeIntro: ['[e]', '[f]'],
+  homeIntro: [
+    'I work in marketing, and the part of it I keep coming back to is consumer behaviour — why people choose what they choose, and how much of that is settled before anyone notices they are deciding.',
+    'I have finished my master’s and cleared the UGC-NET in Management, which qualifies me to be appointed as an assistant professor. I write here about whatever in the field I find worth thinking through properly, and I am glad to hear from anyone working on something close to it.',
+  ],
   /**
    * Profile links. A link with an empty href is hidden automatically, so these
    * stay off the site entirely until you fill them in — nothing to remove.
    */
   links: [
-    { label: 'Email', href: '' }, // [g] — mailto:you@example.com
-    { label: 'LinkedIn', href: '' }, // [h]
+    { label: 'Email', href: 'mailto:khushi@khushibajaj.com' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/khushibajaj7' },
     { label: 'ORCID', href: '' }, // [i]
     { label: 'Google Scholar', href: '' }, // [j]
   ],
@@ -51,7 +57,7 @@ export const site = {
 export const nav = [
   { label: 'Contact', href: '/contact/' },
   { label: 'CV', href: '/cv/' },
-  { label: 'Articles', href: '/articles/' },
+  { label: 'Writing', href: '/writing/' },
 ] as const;
 
 /** Links with a real href, in nav/footer display order. */

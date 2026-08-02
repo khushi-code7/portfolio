@@ -2,13 +2,13 @@
 /**
  * The homepage, built from your sketch.
  *
- *   nav top right      Contact | CV | Articles
+ *   nav top right      Contact | CV | Writing
  *   circular photo     with your name beside it
  *   icon links         envelope and LinkedIn, hidden until they have addresses
  *   About box          a bordered panel
- *   Articles           title, summary, and an optional thumbnail
+ *   Writing            title, summary, and an optional thumbnail
  *
- * Articles list themselves — publishing one puts it at the top. This page never
+ * Pieces list themselves — publishing one puts it at the top. This page never
  * needs editing to add a piece of writing.
  */
 import { getCollection } from 'astro:content';
@@ -17,7 +17,7 @@ import IconLink from '../components/IconLink.astro';
 import { site } from '../data/site';
 import { publishedByNewest } from '../lib/content';
 
-const articles = publishedByNewest(await getCollection('articles'));
+const pieces = publishedByNewest(await getCollection('writing'));
 
 const linkFor = (label: string) => site.links.find((link) => link.label === label)?.href ?? '';
 ---
@@ -43,24 +43,24 @@ const linkFor = (label: string) => site.links.find((link) => link.label === labe
   </section>
 
   <section class="articles">
-    <h2>Articles</h2>
+    <h2>Writing</h2>
 
     {
-      articles.length === 0 ? (
+      pieces.length === 0 ? (
         <p class="empty">Nothing published yet.</p>
       ) : (
         <ul class="article-list">
-          {articles.map((article) => (
+          {pieces.map((piece) => (
             <li class="article">
               <span class="article__dot" aria-hidden="true" />
               <div class="article__text">
                 <h3>
-                  <a href={`/articles/${article.id}/`}>{article.data.title}</a>
+                  <a href={`/writing/${piece.id}/`}>{piece.data.title}</a>
                 </h3>
-                <p>{article.data.summary}</p>
+                <p>{piece.data.summary}</p>
               </div>
-              {article.data.thumbnail && (
-                <img class="article__thumb" src={article.data.thumbnail} alt="" width="240" height="160" />
+              {piece.data.thumbnail && (
+                <img class="article__thumb" src={piece.data.thumbnail} alt="" width="240" height="160" />
               )}
             </li>
           ))}

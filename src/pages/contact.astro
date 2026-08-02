@@ -2,21 +2,20 @@
 /**
  * Contact.
  *
- * Deliberately holds no real contact details yet. Fill `email` and the `links`
- * in `src/data/site.ts` and this page picks them up — the email line below
- * becomes a working mailto link, and the "Elsewhere" list appears on its own.
+ * The address and the "Elsewhere" list come from `src/data/site.ts` — there is
+ * no second copy of either here. Adding a profile link there adds it below.
  */
 import Base from '../layouts/Base.astro';
 import { site, activeLinks } from '../data/site';
 
-const description = '[bv]';
+const description = 'How to reach Khushi Bajaj — marketing and consumer behaviour.';
 const hasEmail = !site.email.startsWith('[');
 ---
 
 <Base title="Contact" description={description}>
   <div class="page-head">
     <h1>Contact</h1>
-    <p>[bw]</p>
+    <p>Email is the surest way to reach me.</p>
   </div>
 
   <div class="prose">
@@ -24,11 +23,11 @@ const hasEmail = !site.email.startsWith('[');
       {hasEmail ? <a href={`mailto:${site.email}`}>{site.email}</a> : site.email}
     </p>
 
-    <p>[bx]</p>
+    <p>I am glad to hear from you if you are:</p>
     <ul>
-      <li>[by]</li>
-      <li>[bz]</li>
-      <li>[ca]</li>
+      <li>working on consumer behaviour, or on marketing research more broadly</li>
+      <li>looking for a teaching or research collaborator</li>
+      <li>responding to something I have written here</li>
     </ul>
 
     {

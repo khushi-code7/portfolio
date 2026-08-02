@@ -35,18 +35,21 @@ export interface Section {
 }
 
 export const profile = {
-  name: '[a]',
+  name: 'Khushi Bajaj',
   /** One line under the name. The only place on the CV allowed a voice. */
-  strapline: '[k]',
+  strapline: 'Marketing and consumer behaviour',
   location: '[l]',
-  email: '[d]',
+  email: 'khushi@khushibajaj.com',
   /**
    * Shown only on the printed CV, never on the web page — a phone number is
    * expected on a CV you attach to an application and unnecessary on a public
    * page anyone can read. Leave it as '' to keep it off the print version too.
    */
   phone: '',
-  linkedin: { label: '[m]', href: '' },
+  linkedin: {
+    label: 'linkedin.com/in/khushibajaj7',
+    href: 'https://www.linkedin.com/in/khushibajaj7',
+  },
 } as const;
 
 /**

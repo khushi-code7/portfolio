@@ -35,12 +35,12 @@ const research = defineCollection({
 });
 
 /**
- * Articles. One file per piece in `src/content/articles/`.
+ * Writing. One file per piece in `src/content/writing/`.
  * There is deliberately no cadence promised anywhere on the site — four good
  * essays a year reads as a considered series, four blog posts a year reads dead.
  */
-const articles = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/articles' }),
+const writing = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/writing' }),
   schema: z.object({
     title: z.string(),
     summary: z.string(),
@@ -55,7 +55,7 @@ const articles = defineCollection({
      * the title and summary simply fill the space.
      */
     thumbnail: z.string().optional(),
-    // Groups multi-part articles. Any string; pieces sharing it are linked together.
+    // Groups multi-part pieces. Any string; pieces sharing it are linked together.
     series: z.string().optional(),
     // Sources, rendered as a reference list at the foot of the essay.
     references: z
@@ -70,4 +70,4 @@ const articles = defineCollection({
   }),
 });
 
-export const collections = { research, articles };
+export const collections = { research, writing };
