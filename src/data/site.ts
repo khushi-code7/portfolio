@@ -33,10 +33,7 @@ export const site = {
    * Two short paragraphs. This is the only place your bio lives; there is no
    * separate About page, exactly as you drew it.
    */
-  homeIntro: [
-    'I work in marketing, and the part of it I keep coming back to is consumer behaviour — why people choose what they choose, and how much of that is settled before anyone notices they are deciding.',
-    'I have finished my master’s and cleared the UGC-NET in Management, which qualifies me to be appointed as an assistant professor. I write here about whatever in the field I find worth thinking through properly, and I am glad to hear from anyone working on something close to it.',
-  ],
+  homeIntro: ['[e]', '[f]'],
   /**
    * Profile links. A link with an empty href is hidden automatically, so these
    * stay off the site entirely until you fill them in — nothing to remove.
