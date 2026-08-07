@@ -205,10 +205,9 @@ hr {
 .post-head__meta,
 .post-head__methods,
 .home-list__meta,
-.cv__contact,
-.cv__hint,
+.cv-masthead__contact,
+.cv-hint,
 .cv-entry__when,
-.cv-skills dt,
 .references h2,
 .series h2,
 .tag,
@@ -221,7 +220,7 @@ hr {
 
 /* Two exceptions. The print hint names keys — "CTRL / CMD + P" shouted in
    capitals reads worse, not better — and a summary is prose, not a label. */
-.cv__hint,
+.cv-hint,
 .post-head__methods {
   letter-spacing: normal;
   text-transform: none;
@@ -780,73 +779,95 @@ main {
 }
 
 /* ---------------------------------------------------------------
-   CV
-   Two columns on every row: the entry on the left, its date on the
-   right. The date is the only thing a reader scans for, so it gets a
-   column of its own rather than being buried in the line.
+   CV — "left rail": section name in a fixed left column,
+   entries on the right. Print rules at the foot of this file.
    --------------------------------------------------------------- */
 
-.cv__head {
-  margin-bottom: 1.5rem;
+.cv-masthead {
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-.cv__strapline {
-  font-size: var(--step-1);
-  color: var(--text-muted);
-  margin: 0.5rem 0 0.75rem;
+.cv-masthead h1 {
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  margin: 0 0 0.4rem;
 }
 
-.cv__contact {
+.cv-masthead__strap {
+  font-family: var(--font-sans);
+  font-size: var(--step--1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.75rem;
+}
+
+.cv-masthead__contact {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.15rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  gap: 0.3rem 1.5rem;
+  font-family: var(--font-sans);
   font-size: var(--step--1);
   color: var(--text-muted);
+  margin: 0;
 }
 
-.cv__summary {
-  max-width: var(--measure);
-}
-
-.cv__actions {
+.cv-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  margin: 1.5rem 0 0;
+  margin: 0 0 2rem;
 }
 
-.cv__hint {
+.cv-hint {
+  font-family: var(--font-sans);
   font-size: var(--step--1);
   color: var(--text-muted);
 }
 
-.cv-section {
-  margin-top: 2.5rem;
+/* The rail. Below 40rem it collapses to a single column and the section name
+   becomes an ordinary heading above its entries. */
+.cv-band {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: 0 2rem;
+  padding-block: 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
-.cv-section > h2 {
-  font-size: var(--step-1);
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.25rem;
-  border-bottom: 1px solid var(--border);
+.cv-band > h2 {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  line-height: 1.45;
+  margin: 0.2rem 0 0;
 }
 
-.cv-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+@media (max-width: 40rem) {
+  .cv-band {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.7rem 0;
+  }
 }
 
 .cv-entry {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0 1.5rem;
+  gap: 0 1.25rem;
   align-items: baseline;
-  padding-block: 0.9rem;
+  padding-block: 0.6rem;
+}
+
+.cv-entry:first-child {
+  padding-top: 0;
 }
 
 .cv-entry + .cv-entry {
@@ -855,85 +876,69 @@ main {
 
 .cv-entry__title {
   font-size: var(--step-0);
-  font-weight: 650;
-  letter-spacing: 0;
-  margin: 0 0 0.15rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cv-entry__title a {
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
 }
 
 .cv-entry__where,
 .cv-entry__note {
-  margin: 0;
+  font-size: var(--step--1);
   color: var(--text-muted);
+  margin: 0.2rem 0 0;
   max-width: var(--measure);
 }
 
 .cv-entry__note {
-  margin-top: 0.3rem;
-}
-
-.cv-entry__where .sep {
-  margin-inline: 0.4rem;
+  margin-top: 0.35rem;
 }
 
 .cv-entry__when {
-  margin: 0;
+  font-family: var(--font-sans);
   font-size: var(--step--1);
   color: var(--text-muted);
   white-space: nowrap;
-}
-
-.cv-section__more {
-  margin: 0.9rem 0 0;
-  font-size: var(--step--1);
-}
-
-.cv-skills {
+  text-align: right;
   margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
-.cv-skills__row {
-  display: grid;
-  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
-  gap: 0 1.5rem;
-  padding-block: 0.9rem;
-}
-
-.cv-skills__row + .cv-skills__row {
-  border-top: 1px solid var(--border);
-}
-
-.cv-skills dt {
+/* A dissertation, set off by a rule so it reads as part of the degree above it
+   rather than as a separate claim. */
+.cv-diss {
+  border-left: 2px solid var(--accent);
+  padding-left: 0.85rem;
+  margin: 0.45rem 0 0;
   font-size: var(--step--1);
   color: var(--text-muted);
+  max-width: var(--measure);
 }
 
-.cv-skills dd {
+.cv-diss__label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.15rem;
+}
+
+.cv-plain {
   margin: 0;
+  font-size: var(--step--1);
+  max-width: var(--measure);
 }
 
-.cv-skills dd ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.25rem;
-}
-
-/* On a phone the date moves above the entry rather than squeezing it. */
-@media (max-width: 34rem) {
-  .cv-entry,
-  .cv-skills__row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .cv-entry__when {
-    order: -1;
-    margin-bottom: 0.2rem;
-  }
+.cv-plain + .cv-plain {
+  margin-top: 0.5rem;
 }
 
 /* ---------------------------------------------------------------
-   Print — the homepage prints as the CV
+   Print — /cv/ prints as the CV document
    --------------------------------------------------------------- */
 
 @media print {
@@ -943,12 +948,10 @@ main {
     --text: #000000;
     --text-muted: #333333;
     --border: #cccccc;
-    --accent: #000000;
     --step--1: 8.5pt;
     --step-0: 9.5pt;
     --step-1: 12pt;
-    --step-2: 14pt;
-    --step-3: 20pt;
+    --measure: 100%;
     --page-max: 100%;
     --gutter: 0;
   }
@@ -959,7 +962,7 @@ main {
 
   body {
     background: #fff;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
   main {
@@ -969,41 +972,31 @@ main {
   .site-header,
   .site-footer,
   .skip-link,
-  .screen-only,
-  .cv-section__more {
+  .screen-only {
     display: none !important;
   }
 
   .print-only {
-    display: list-item;
+    display: inline;
   }
 
-  /* Links are dead ink on paper — the URL has to be readable. */
-  .cv__contact a,
+  /* Links are dead ink on paper. */
+  .cv-masthead__contact a,
   .cv-entry__title a {
     text-decoration: none;
   }
 
-  .cv__summary {
-    margin-top: 1rem;
+  .cv-band {
+    padding-block: 0.55rem;
   }
 
-  .cv-section {
-    margin-top: 1.4rem;
-  }
-
+  /* Never split an entry, and never strand a section name at a page foot. */
   .cv-entry,
-  .cv-skills__row {
-    padding-block: 0.45rem;
-  }
-
-  /* Never split an entry or strand a heading at the foot of a page. */
-  .cv-entry,
-  .cv-skills__row {
+  .cv-diss {
     break-inside: avoid;
   }
 
-  .cv-section > h2 {
+  .cv-band > h2 {
     break-after: avoid;
   }
 }

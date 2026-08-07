@@ -1,105 +1,88 @@
 ---
 /**
- * The CV.
+ * The CV — "left rail" layout. Section names sit in a fixed left column, the
+ * entries fill the right.
  *
- * Everything here comes from `src/data/cv.ts` and the research collection —
- * there is no second copy of any of it. Printing this page (Ctrl/Cmd+P) gives
- * the PDF, so the two can never disagree.
+ * Everything comes from `src/data/cv.ts` and the research collection; there is
+ * no second copy of any of it. Printing this page (Ctrl/Cmd+P) gives the PDF,
+ * so the two can never disagree.
  */
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import CvSection from '../components/CvSection.astro';
 import { site } from '../data/site';
-import { profile, summary, skills, sectionsBeforeResearch, sectionsAfterResearch } from '../data/cv';
-import { publishedByNewest, displayYear, provenance } from '../lib/content';
+import {
+  profile,
+  skills,
+  languages,
+  sectionsBeforeResearch,
+  sectionsAfterResearch,
+} from '../data/cv';
+import { publishedByNewest, displayYear } from '../lib/content';
 
-const research = publishedByNewest(await getCollection('research'));
+const papers = publishedByNewest(await getCollection('research'));
 ---
 
 <Base title="CV" description={site.intro}>
   <article class="cv">
-    <header class="cv__head">
+    <header class="cv-masthead">
       <h1>{profile.name}</h1>
-      <p class="cv__strapline">{profile.strapline}</p>
-
-      <ul class="cv__contact">
-        <li>{profile.location}</li>
-        <li>
-          {
-            profile.email.startsWith('[') ? (
-              profile.email
-            ) : (
-              <a href={`mailto:${profile.email}`}>{profile.email}</a>
-            )
-          }
-        </li>
-        <li>
-          {
-            profile.linkedin.href ? (
-              <a href={profile.linkedin.href}>{profile.linkedin.label}</a>
-            ) : (
-              profile.linkedin.label
-            )
-          }
-        </li>
-        {profile.phone && <li class="print-only">{profile.phone}</li>}
-      </ul>
+      <p class="cv-masthead__strap">{profile.strapline}</p>
+      <p class="cv-masthead__contact">
+        <span>{profile.location}</span>
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        <a href={profile.linkedin.href}>{profile.linkedin.label}</a>
+        {profile.phone && <span class="print-only">{profile.phone}</span>}
+      </p>
     </header>
 
-    <div class="cv__summary">
-      {summary.map((paragraph) => <p>{paragraph}</p>)}
-    </div>
-
-    <p class="cv__actions screen-only">
+    <p class="cv-actions screen-only">
       <button type="button" class="button" data-print>Save this page as a PDF</button>
-      <span class="cv__hint">or press Ctrl / Cmd + P</span>
+      <span class="cv-hint">or press Ctrl / Cmd + P</span>
     </p>
 
     {sectionsBeforeResearch.map((section) => <CvSection section={section} />)}
 
-    <section class="cv-section" id="research">
-      <h2>Research</h2>
-      <ol class="cv-list">
+    <section class="cv-band" id="papers">
+      <h2>Papers presented</h2>
+      <div>
         {
-          research.map((entry) => (
-            <li class="cv-entry">
+          papers.map((paper) => (
+            <div class="cv-entry">
               <div class="cv-entry__main">
-                <h3 class="cv-entry__title">
-                  <a href={`/research/${entry.id}/`}>{entry.data.title}</a>
-                </h3>
-                <p class="cv-entry__where">{provenance(entry.data)}</p>
-                <p class="cv-entry__note">{entry.data.summary}</p>
+                <p class="cv-entry__title">
+                  <a href={`/research/${paper.id}/`}>{paper.data.title}</a>
+                </p>
+                {paper.data.venue && <p class="cv-entry__where">{paper.data.venue}</p>}
+                <p class="cv-entry__note">{paper.data.summary}</p>
               </div>
-              <p class="cv-entry__when">{displayYear(entry.data)}</p>
-            </li>
+              <p class="cv-entry__when">{displayYear(paper.data)}</p>
+            </div>
           ))
         }
-      </ol>
-      <p class="cv-section__more screen-only">
-        <a href="/research/">All research in detail →</a>
-      </p>
+      </div>
     </section>
 
     {sectionsAfterResearch.map((section) => <CvSection section={section} />)}
 
-    <section class="cv-section" id="skills">
-      <h2>Skills and tools</h2>
-      <dl class="cv-skills">
+    <section class="cv-band" id="skills">
+      <h2>Skills</h2>
+      <div>
         {
           skills.map((group) => (
-            <div class="cv-skills__row">
-              <dt>{group.group}</dt>
-              <dd>
-                <ul>
-                  {group.items.map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-              </dd>
-            </div>
+            <p class="cv-plain">
+              <b>{group.group}</b> — {group.text}
+            </p>
           ))
         }
-      </dl>
+      </div>
+    </section>
+
+    <section class="cv-band" id="languages">
+      <h2>Languages</h2>
+      <div>
+        <p class="cv-plain">{languages}</p>
+      </div>
     </section>
   </article>
 </Base>

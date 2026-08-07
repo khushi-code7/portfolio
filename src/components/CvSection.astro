@@ -1,7 +1,8 @@
 ---
 /**
- * One block of the CV — a heading and its entries. Every section gets an id so
- * a single part of the CV can be linked directly: `khushibajaj.com/#education`.
+ * One band of the CV — the section name in the fixed left rail, its entries on
+ * the right. Every band gets an id so a single part of the CV can be linked
+ * directly: `khushibajaj.com/cv/#education`.
  */
 import type { Section } from '../data/cv';
 
@@ -12,28 +13,28 @@ interface Props {
 const { section } = Astro.props;
 ---
 
-<section class="cv-section" id={section.id}>
+<section class="cv-band" id={section.id}>
   <h2>{section.heading}</h2>
-  <ol class="cv-list">
+  <div>
     {
       section.entries.map((entry) => (
-        <li class="cv-entry">
+        <div class="cv-entry">
           <div class="cv-entry__main">
-            <h3 class="cv-entry__title">
+            <p class="cv-entry__title">
               {entry.href ? <a href={entry.href}>{entry.title}</a> : entry.title}
-            </h3>
-            {(entry.where || entry.result) && (
-              <p class="cv-entry__where">
-                {entry.where}
-                {entry.where && entry.result && <span class="sep">·</span>}
-                {entry.result && <span class="cv-entry__result">{entry.result}</span>}
+            </p>
+            {entry.where && <p class="cv-entry__where">{entry.where}</p>}
+            {entry.notes?.map((note) => <p class="cv-entry__where">{note}</p>)}
+            {entry.dissertation && (
+              <p class="cv-diss">
+                <span class="cv-diss__label">Dissertation</span>
+                <em>{entry.dissertation}</em>
               </p>
             )}
-            {entry.notes?.map((note) => <p class="cv-entry__note">{note}</p>)}
           </div>
           <p class="cv-entry__when">{entry.when}</p>
-        </li>
+        </div>
       ))
     }
-  </ol>
+  </div>
 </section>

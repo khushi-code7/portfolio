@@ -5,9 +5,6 @@
  * the PDF from these same lines. There is deliberately no second copy anywhere —
  * a separate PDF would drift out of date within a month.
  *
- * Everything in [square brackets] is a placeholder waiting for you.
- * See PLACEHOLDERS.md in the project root for what each letter is.
- *
  * To add a row, copy an existing one. To remove a section, delete it from the
  * two arrays at the bottom of this file — nothing else needs touching.
  */
@@ -19,10 +16,10 @@ export interface Entry {
   where?: string;
   /** Right-hand column. A year, a range, or a month-year. */
   when: string;
-  /** Grade, score, percentile — anything a reader would want to check. */
-  result?: string;
   /** Free-text detail lines shown beneath the title. */
   notes?: string[];
+  /** A dissertation title, set off by a rule so it reads as part of the degree. */
+  dissertation?: string;
   /** Turns the title into a link. Use for anything with public evidence. */
   href?: string;
 }
@@ -38,12 +35,12 @@ export const profile = {
   name: 'Khushi Bajaj',
   /** One line under the name. The only place on the CV allowed a voice. */
   strapline: 'Marketing and consumer behaviour',
-  location: '[l]',
+  location: 'Guwahati, Assam',
   email: 'khushi@khushibajaj.com',
   /**
    * Shown only on the printed CV, never on the web page — a phone number is
    * expected on a CV you attach to an application and unnecessary on a public
-   * page anyone can read. Leave it as '' to keep it off the print version too.
+   * page anyone can read. Fill it in and it appears on the print version only.
    */
   phone: '',
   linkedin: {
@@ -52,89 +49,135 @@ export const profile = {
   },
 } as const;
 
-/**
- * The opening paragraphs. Two or three sentences for someone who has thirty
- * seconds: what you work on, and what you are looking for.
- */
-export const summary = ['[n]', '[o]'];
-
 export const education: Section = {
   id: 'education',
-  heading: 'Education and qualifications',
+  heading: 'Education',
   entries: [
     {
-      title: '[p]',
-      where: '[q]',
-      when: '[r]',
-      result: '[s]',
-      notes: ['[t]'],
+      title: 'UGC-NET, Management',
+      where: 'Qualified for Assistant Professor eligibility and Ph.D. admission',
+      when: 'Dec 2025',
+      notes: ['97.42 percentile · 188 marks'],
     },
     {
-      title: '[u]',
-      where: '[v]',
-      when: '[w]',
-      result: '[x]',
+      title: 'M.Com, Marketing Management',
+      where: 'St. Xavier’s College (Autonomous), Kolkata · 8.24 CGPA',
+      when: '2026',
+      dissertation:
+        'Discerning the Role of Attention Fragmentation and Selective Attention in Shaping Consumer Purchase Decisions: The Case of FMCG Brands in Kolkata.',
+    },
+    {
+      title: 'B.Com (Hons.), Marketing Management',
+      where: 'St. Xavier’s College (Autonomous), Kolkata · 7.21 CGPA',
+      when: '2024',
+      dissertation: 'Impact of Automation in Human Resource Practices in India.',
+    },
+    {
+      title: 'ISC, Class XII',
+      where: 'Sanskriti The Gurukul, Guwahati · 92.6%',
+      when: '2021',
+    },
+    {
+      title: 'ICSE, Class X',
+      where: 'Sanskriti The Gurukul, Guwahati · 86.5%',
+      when: '2019',
     },
   ],
 };
 
-export const teaching: Section = {
-  id: 'teaching',
-  heading: 'Teaching and experience',
+export const experience: Section = {
+  id: 'experience',
+  heading: 'Experience',
   entries: [
     {
-      title: '[y]',
-      where: '[z]',
-      when: '[aa]',
-      notes: ['[ab]'],
+      title: 'Marketing and Sales Intern',
+      where: 'Salasar Bakers Pvt. Ltd.',
+      when: 'Jan – Mar 2026',
+      notes: [
+        'Worked across marketing and sales operations, including customer engagement and market research.',
+      ],
     },
     {
-      title: '[ac]',
-      where: '[ad]',
-      when: '[ae]',
+      title: 'Social Media Managing Intern',
+      where: 'GirlUpKavach, a GirlUp community chapter',
+      when: 'Feb 2022 – Jan 2023',
+      notes: [
+        'Ran the weekly “Friday Features” campaign, and worked on content management, analytics and audience engagement.',
+      ],
     },
   ],
 };
 
 export const awards: Section = {
   id: 'awards',
-  heading: 'Awards and scholarships',
+  heading: 'Awards and achievements',
   entries: [
     {
-      title: '[af]',
-      where: '[ag]',
-      when: '[ah]',
+      title: 'Fr. Joris Scholarship for Academic Performance',
+      where:
+        'St. Xavier’s College (Autonomous), Kolkata — three consecutive years, from a B.Com batch of 700+',
+      when: '2021 – 2024',
     },
     {
-      title: '[ai]',
-      when: '[aj]',
+      title: 'Third place, Android App Development — TECHVRIDDHI’19',
+      where: 'IIT Kharagpur',
+      when: '2019',
+    },
+    {
+      title: 'Best Speaker and Extra Mile Award',
+      where: 'Micmellows Public Speaking Workshop',
+      when: '2019',
+    },
+    {
+      title: 'Global Economics Olympiad — Grade A+',
+      when: '2016',
+    },
+  ],
+};
+
+export const service: Section = {
+  id: 'service',
+  heading: 'Service and volunteering',
+  entries: [
+    {
+      title: 'Registration committee',
+      where:
+        '4th International Conference on Business Innovation Practices and Sustainability in the VUCA World',
+      when: 'Nov 2025',
+    },
+    {
+      title: 'Volunteer',
+      where: 'Pather Sathi — holistic activities with underprivileged children',
+      when: '2024',
     },
   ],
 };
 
 /**
- * Grouped rather than listed flat so a reader can find the one they care about.
- * Every tool named here should have something on the site that used it.
+ * Rendered as prose rather than as a list, because a skills list is only worth
+ * reading when each entry says what you did with the thing.
  */
 export const skills = [
   {
-    group: '[ak]',
-    items: ['[al]', '[am]'],
+    group: 'Quantitative',
+    text: 'SPSS: survey analysis, reliability testing, mediation analysis. Excel: data cleaning, descriptive analysis, charting.',
   },
   {
-    group: '[an]',
-    items: ['[ao]', '[ap]'],
+    group: 'Research',
+    text: 'Questionnaire design and primary data collection, mixed-method study design, secondary-data analysis, academic and report writing.',
   },
   {
-    group: '[aq]',
-    items: ['[ar]', '[as]'],
+    group: 'Other',
+    text: 'Public speaking, MS Word and PowerPoint, Canva.',
   },
 ];
 
+export const languages = 'English · Hindi';
+
 /**
- * Homepage order. Research is not in either list — it comes from the content
- * collection and renders between the two, directly after education, which is
- * where an academic reader looks for it.
+ * Page order. Papers are not in either list — they come from the research
+ * content collection and render between the two, directly after education,
+ * which is where an academic reader looks for them.
  */
 export const sectionsBeforeResearch = [education];
-export const sectionsAfterResearch = [teaching, awards];
+export const sectionsAfterResearch = [experience, awards, service];
