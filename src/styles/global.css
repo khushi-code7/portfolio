@@ -809,6 +809,7 @@ main {
 .cv-masthead__contact {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.3rem 1.5rem;
   font-family: var(--font-sans);
   font-size: var(--step--1);
@@ -816,27 +817,27 @@ main {
   margin: 0;
 }
 
-/* Email and LinkedIn, each with its glyph. The underline belongs to the text
-   alone — carried under the icon it reads as a box, not a link. */
+/* Email and LinkedIn are the glyph alone on screen — the address itself is
+   carried in a `.print-only` span, so the printed CV still says where to write.
+   The padding is the tap target, not decoration: an icon this size is otherwise
+   a hard thing to hit on a phone. */
 .cv-contact {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  padding: 0.35rem;
   text-decoration: none;
 }
 
-.cv-contact span {
-  text-decoration: underline;
-  text-decoration-color: inherit;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 0.07em;
-}
-
 .cv-contact__icon {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 1.1rem;
+  height: 1.1rem;
   flex: none;
   color: var(--accent);
+}
+
+.cv-contact:hover .cv-contact__icon {
+  color: var(--text);
 }
 
 .cv-actions {
@@ -1011,9 +1012,13 @@ main {
   }
 
   /* Icons print as flat black — a terracotta envelope on a mono printer comes
-     out a muddy grey. */
+     out a muddy grey. The tap-target padding is screen furniture. */
   .cv-contact__icon {
     color: inherit;
+  }
+
+  .cv-contact {
+    padding: 0;
   }
 
   .cv-band {

@@ -31,18 +31,25 @@ const papers = publishedByNewest(await getCollection('research'));
       <p class="cv-masthead__strap">{profile.strapline}</p>
       <p class="cv-masthead__contact">
         <span>{profile.location}</span>
-        <a class="cv-contact" href={`mailto:${profile.email}`}>
+        <a
+          class="cv-contact"
+          href={`mailto:${profile.email}`}
+          aria-label={`Email ${profile.email}`}
+          title={profile.email}
+        >
           <Icon name="mail" class="cv-contact__icon" />
-          <span>{profile.email}</span>
+          <span class="print-only">{profile.email}</span>
         </a>
         <a
           class="cv-contact"
           href={profile.linkedin.href}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={`LinkedIn — ${profile.linkedin.label}`}
+          title={profile.linkedin.label}
         >
           <Icon name="linkedin" class="cv-contact__icon" />
-          <span>{profile.linkedin.label}</span>
+          <span class="print-only">{profile.linkedin.label}</span>
         </a>
         {profile.phone && <span class="print-only">{profile.phone}</span>}
       </p>
