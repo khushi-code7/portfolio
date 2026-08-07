@@ -28,7 +28,7 @@ const papers = publishedByNewest(await getCollection('research'));
   <article class="cv">
     <header class="cv-masthead">
       <h1>{profile.name}</h1>
-      <p class="cv-masthead__strap">{profile.strapline}</p>
+      {profile.strapline && <p class="cv-masthead__strap">{profile.strapline}</p>}
       <p class="cv-masthead__contact">
         <span>{profile.location}</span>
         <a

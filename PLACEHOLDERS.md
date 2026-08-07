@@ -31,7 +31,7 @@ icons under your name on.
 | | What it is |
 | --- | --- |
 | `[a]` | Your name. Appears in the header, on the homepage, in the browser tab. |
-| `[b]` | Role line under your name — e.g. "Marketing and consumer behaviour research". |
+| `[b]` | Role line, appended to your name in the homepage browser tab. Deliberately empty — fill it in and it comes back. |
 | `[c]` | One sentence describing the site. Used by Google and link previews. |
 | `[d]` | Your email address. Also used by the CV and Contact pages. |
 | `[e]` | The About box on the homepage, first paragraph. |

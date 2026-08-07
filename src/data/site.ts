@@ -11,11 +11,12 @@ export const site = {
   name: 'Khushi Bajaj',
   // Shown in the browser tab and search results, after the page title.
   title: 'Khushi Bajaj',
-  tagline: 'Marketing and consumer behaviour',
+  // Appended to the site name in the homepage browser tab. Empty means the tab
+  // reads "Khushi Bajaj" and nothing more.
+  tagline: '',
   // The <meta name="description"> default, and the fallback social-card text.
   // One sentence that would make sense to a stranger.
-  intro:
-    'Khushi Bajaj — marketing, with a focus on consumer behaviour. Writing, research and CV.',
+  intro: 'Khushi Bajaj — writing, research and CV.',
   // Used for absolute URLs in the sitemap, RSS feed and canonical tags.
   url: 'https://www.khushibajaj.com',
   email: 'khushi@khushibajaj.com',

@@ -16,7 +16,9 @@ interface Props {
 
 const { title, description = site.intro, type = 'website', bare = false } = Astro.props;
 
-const pageTitle = title ? `${title} — ${site.title}` : `${site.title} · ${site.tagline}`;
+const pageTitle = title
+  ? `${title} — ${site.title}`
+  : [site.title, site.tagline].filter(Boolean).join(' · ');
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
 ---
 

@@ -33,8 +33,12 @@ export interface Section {
 
 export const profile = {
   name: 'Khushi Bajaj',
-  /** One line under the name. The only place on the CV allowed a voice. */
-  strapline: 'Marketing and consumer behaviour',
+  /**
+   * One line under the name. The only place on the CV allowed a voice.
+   * Empty, so the masthead is the name and the contact line alone — fill it in
+   * and the line reappears, no other edit needed.
+   */
+  strapline: '',
   location: 'Guwahati, Assam',
   email: 'khushi@khushibajaj.com',
   /**
