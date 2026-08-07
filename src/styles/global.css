@@ -816,6 +816,29 @@ main {
   margin: 0;
 }
 
+/* Email and LinkedIn, each with its glyph. The underline belongs to the text
+   alone — carried under the icon it reads as a box, not a link. */
+.cv-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+}
+
+.cv-contact span {
+  text-decoration: underline;
+  text-decoration-color: inherit;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.07em;
+}
+
+.cv-contact__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  color: var(--accent);
+}
+
 .cv-actions {
   display: flex;
   flex-wrap: wrap;
@@ -982,8 +1005,15 @@ main {
 
   /* Links are dead ink on paper. */
   .cv-masthead__contact a,
+  .cv-masthead__contact a span,
   .cv-entry__title a {
     text-decoration: none;
+  }
+
+  /* Icons print as flat black — a terracotta envelope on a mono printer comes
+     out a muddy grey. */
+  .cv-contact__icon {
+    color: inherit;
   }
 
   .cv-band {

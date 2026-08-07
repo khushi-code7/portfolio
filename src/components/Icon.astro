@@ -1,0 +1,37 @@
+---
+/**
+ * The two profile glyphs, in one place. Used boxed by `IconLink` on the
+ * homepage and inline beside the address on the CV, so there is only ever one
+ * copy of each path.
+ *
+ * Always decorative: every caller supplies its own accessible name, so the svg
+ * is hidden from screen readers here rather than read out twice.
+ */
+interface Props {
+  name: 'mail' | 'linkedin';
+  /** Extra class on the svg, for sizing at the call site. */
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+---
+
+{
+  name === 'mail' ? (
+    <svg
+      class={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      aria-hidden="true"
+    >
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <path d="M3 6.5l9 6.5 9-6.5" />
+    </svg>
+  ) : (
+    <svg class={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9z" />
+    </svg>
+  )
+}

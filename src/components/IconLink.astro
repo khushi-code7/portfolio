@@ -6,6 +6,8 @@
  * Renders nothing at all when there is no href, so neither icon appears on the
  * site until you fill the address in.
  */
+import Icon from './Icon.astro';
+
 interface Props {
   href: string;
   /** Read out by screen readers, and shown as the tooltip on hover. */
@@ -14,21 +16,23 @@ interface Props {
 }
 
 const { href, label, icon } = Astro.props;
+
+// A profile on someone else's site opens in its own tab; mailto: must not, or
+// the browser is left holding an empty window after the mail client opens.
+const external = href.startsWith('http');
 ---
 
 {
   href && (
-    <a class="icon-link" href={href} aria-label={label} title={label}>
-      {icon === 'mail' ? (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-          <rect x="2.5" y="5" width="19" height="14" rx="2" />
-          <path d="M3 6.5l9 6.5 9-6.5" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21H9z" />
-        </svg>
-      )}
+    <a
+      class="icon-link"
+      href={href}
+      aria-label={label}
+      title={label}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
+      <Icon name={icon} />
     </a>
   )
 }

@@ -10,6 +10,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import CvSection from '../components/CvSection.astro';
+import Icon from '../components/Icon.astro';
 import { site } from '../data/site';
 import {
   profile,
@@ -30,8 +31,19 @@ const papers = publishedByNewest(await getCollection('research'));
       <p class="cv-masthead__strap">{profile.strapline}</p>
       <p class="cv-masthead__contact">
         <span>{profile.location}</span>
-        <a href={`mailto:${profile.email}`}>{profile.email}</a>
-        <a href={profile.linkedin.href}>{profile.linkedin.label}</a>
+        <a class="cv-contact" href={`mailto:${profile.email}`}>
+          <Icon name="mail" class="cv-contact__icon" />
+          <span>{profile.email}</span>
+        </a>
+        <a
+          class="cv-contact"
+          href={profile.linkedin.href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="linkedin" class="cv-contact__icon" />
+          <span>{profile.linkedin.label}</span>
+        </a>
         {profile.phone && <span class="print-only">{profile.phone}</span>}
       </p>
     </header>
