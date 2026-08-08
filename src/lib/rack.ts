@@ -10,10 +10,18 @@
  * tells you what you are in for before you have read a word.
  */
 
-/** Narrowest and widest a spine may be, in rem. */
-const WIDTH = { min: 2.5, max: 5.5 } as const;
-/** Shortest and tallest, as a percentage of the shelf's height. */
-const HEIGHT = { min: 64, max: 100 } as const;
+/**
+ * Narrowest and widest a spine may be, in rem. A real hardback spine is about
+ * a sixth as wide as it is tall, and the shortest book here is held near that
+ * so it still reads as a book rather than as a strip of card.
+ */
+const WIDTH = { min: 3, max: 6.2 } as const;
+/**
+ * Shortest and tallest, as a percentage of the shelf's height. The floor is
+ * high on purpose: a book two-thirds the height of its neighbour looks like a
+ * book, and one a third of the height looks like a mistake.
+ */
+const HEIGHT = { min: 78, max: 100 } as const;
 /** How many tints the ramp has. Must match --spine-1…N in global.css. */
 export const TINT_COUNT = 6;
 

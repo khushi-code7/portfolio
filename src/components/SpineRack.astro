@@ -42,7 +42,7 @@ const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
     <p class="empty">{emptyMessage}</p>
   ) : (
     <div class="rack">
-      <div class="rack__stage">
+      <div class="rack__case">
         <ul class="rack__shelf">
           {spines.map((spine) => (
             <li>
@@ -74,19 +74,15 @@ const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
             </li>
           ))}
         </ul>
-
-        <div class="rack__floor" aria-hidden="true" />
-
-        <p class="rack__caption">
-          <span>
-            {count} · {total} of reading
-          </span>
-          <span>Wider and taller means longer</span>
-        </p>
       </div>
 
-      <p class="rack__hint" aria-hidden="true">
-        Point at a spine — or press Tab — to see what it is.
+      <div class="rack__plank" aria-hidden="true" />
+
+      <p class="rack__caption">
+        <span>
+          {count} · {total} of reading · wider and taller means longer
+        </span>
+        <span class="rack__hint">Point at a book, or press Tab</span>
       </p>
     </div>
   )

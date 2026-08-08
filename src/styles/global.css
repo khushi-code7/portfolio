@@ -44,6 +44,11 @@
   --spine-6: #f1dbd0;
   --spine-6-ink: #6d4436;
 
+  /* The case the books stand in, and the plank they stand on. */
+  --shelf-back: #f1ece2;
+  --shelf-plank: #ddd2bf;
+  --shelf-plank-edge: #c9bda6;
+
   --measure: 68ch;
   --page-max: 46rem;
   --gutter: clamp(1.25rem, 5vw, 2.5rem);
@@ -85,6 +90,10 @@
     --spine-5-ink: #f6e3d9;
     --spine-6: #c98a6d;
     --spine-6-ink: #2a1109;
+
+    --shelf-back: #211c17;
+    --shelf-plank: #3a3129;
+    --shelf-plank-edge: #241e19;
   }
 }
 
@@ -1031,27 +1040,33 @@ main {
 .cv-plain + .cv-plain {
   margin-top: 0.5rem;
 }
-
 /* ---------------------------------------------------------------
    The spine rack — /writing/
 
-   The archive drawn as a shelf. Size is reading time, tint is age. Point at a
-   spine, or tab to it, and it lifts out while its note appears beside the
-   shelf; everything else on the shelf steps back. There is no JavaScript in
-   any of this — :hover and :focus do the whole thing.
+   The archive as a shelf of books. Each piece is a hardback standing on the
+   plank: its width and height are its reading time, its cloth is its age.
+   Point at one — or tab to it — and it lifts up out of the case while its note
+   floats in over the empty end of the shelf; the rest of the shelf steps back.
+   No JavaScript anywhere in it: :hover and :focus do the whole thing.
    --------------------------------------------------------------- */
 
 .rack {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 19rem;
-  gap: clamp(1.5rem, 4vw, 2.5rem);
-  align-items: start;
-  /* A shelf wants more room than the reading measure, so this one page steps
-     outside the 46rem column the rest of the site is set in. */
+  /* A bookcase wants more room than the reading measure, so this one page
+     steps outside the 46rem column the rest of the site is set in. */
   width: min(58rem, calc(100vw - 2 * var(--gutter)));
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* The case: a warm back panel for the books to stand against, open at the top
+   so a lifted book can rise clear of it. */
+.rack__case {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--shelf-back) 55%);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  padding: 2.25rem clamp(0.9rem, 3vw, 1.75rem) 0;
 }
 
 .rack__shelf {
@@ -1060,10 +1075,9 @@ main {
   padding: 0;
   display: flex;
   align-items: flex-end;
-  gap: 0.4rem;
-  /* The lift needs somewhere to go, so the shelf reserves headroom above it. */
-  padding-top: 1.5rem;
-  height: clamp(19rem, 36vw, 26rem);
+  /* Books lean on their neighbours. A generous gap reads as a row of bars. */
+  gap: 2px;
+  height: clamp(15rem, 30vw, 21rem);
 }
 
 .rack__shelf > li {
@@ -1072,8 +1086,30 @@ main {
   height: 100%;
 }
 
+/* The plank they stand on. */
+.rack__plank {
+  height: 0.7rem;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, var(--shelf-plank) 0 45%, var(--shelf-plank-edge));
+  box-shadow: 0 0.4rem 0.9rem rgb(51 48 43 / 12%);
+}
+
+.rack__caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1.5rem;
+  margin: 0.9rem 0 0;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.rack__hint {
+  color: var(--accent);
+}
+
 /* The link is a plain, unpositioned, untransformed wrapper — it has to be, or
-   the note inside it could never escape the spine. */
+   the note inside it could never escape the book that lifts. */
 .spine {
   display: flex;
   align-items: flex-end;
@@ -1082,6 +1118,9 @@ main {
   color: var(--spine-ink);
 }
 
+/* The book itself. The gradient is the curve of a spine: shadow where it meets
+   its neighbour, a sheen down the middle, shadow again at the far edge. That
+   one line is most of the difference between a book and a coloured rectangle. */
 .spine__book {
   position: relative;
   display: flex;
@@ -1090,9 +1129,21 @@ main {
   justify-content: flex-end;
   width: var(--spine-w);
   height: var(--spine-h);
-  padding: 0 0.3rem 0.85rem;
-  background: var(--spine-face);
-  border-radius: 4px 4px 0 0;
+  padding: 0 0.25rem 0.7rem;
+  background-color: var(--spine-face);
+  background-image: linear-gradient(
+    90deg,
+    rgb(0 0 0 / 20%) 0%,
+    rgb(0 0 0 / 4%) 12%,
+    rgb(255 255 255 / 10%) 38%,
+    rgb(255 255 255 / 4%) 62%,
+    rgb(0 0 0 / 8%) 88%,
+    rgb(0 0 0 / 18%) 100%
+  );
+  border-radius: 3px 3px 1px 1px;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 8%),
+    0 -0.1rem 0.4rem rgb(51 48 43 / 10%);
   overflow: hidden;
   transition:
     transform var(--transition),
@@ -1100,12 +1151,12 @@ main {
     box-shadow var(--transition);
 }
 
-/* The two rules pressed near the head of a book cloth. */
+/* The two rules pressed near the head of a cloth binding. */
 .spine__bands {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0.65rem;
+  top: 0.6rem;
   height: 1px;
   background: currentColor;
   opacity: 0.45;
@@ -1120,61 +1171,41 @@ main {
   line-height: 1.1;
   /* A title too long for its spine truncates here and is read in full on the
      note — the same bargain a real shelf makes. */
-  max-height: calc(100% - 4.75rem);
+  max-height: calc(100% - 4.5rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.7rem;
 }
 
 .spine__mins {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   letter-spacing: 0.14em;
   white-space: nowrap;
-}
-
-.rack__floor {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--border);
-}
-
-.rack__caption {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-  margin: 0.75rem 0 0;
-  font-size: var(--step--1);
-  color: var(--text-muted);
-}
-
-.rack__hint {
-  margin: 0;
-  font-size: var(--step--1);
-  line-height: 1.6;
-  color: var(--text-muted);
-  transition: opacity var(--transition);
 }
 
 /* The note. Always in the page — only its visibility changes — so it is read
    by search engines and by anyone whose browser never fires a hover. */
 .spine__card {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 19rem;
+  top: 1.75rem;
+  right: clamp(0.9rem, 3vw, 1.75rem);
+  width: min(20rem, 60%);
   display: grid;
   gap: 0.55rem;
   padding: 1.1rem 1.2rem 1.2rem;
-  background: var(--bg-raised);
+  background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: var(--radius);
-  box-shadow: 0 0.6rem 1.4rem rgb(51 48 43 / 12%);
+  box-shadow: 0 1rem 2.2rem rgb(51 48 43 / 20%);
+  /* Above every book on the shelf. A dimmed book has an opacity of its own,
+     which makes it a stacking context, which means the books after it in the
+     markup would otherwise paint straight over the note. */
+  z-index: 5;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1217,21 +1248,24 @@ main {
   color: var(--accent);
 }
 
-/* Only where a pointer can actually hover. Everything below reverses it. */
+/* Only where a pointer can actually hover. The block after this reverses it. */
 @media (hover: hover) and (min-width: 52rem) {
   /* The shelf steps back rather than disappearing — far enough to make the
-     lifted spine the subject, not so far that the other titles stop being
+     lifted book the subject, not so far that the other titles stop being
      readable while you decide. */
   .rack__shelf:hover .spine__book,
   .rack__shelf:focus-within .spine__book {
-    opacity: 0.5;
+    opacity: 0.55;
   }
 
   .spine:hover .spine__book,
   .spine:focus .spine__book {
     opacity: 1;
-    transform: translateY(-1.5rem);
-    box-shadow: 0 0.9rem 1.6rem rgb(51 48 43 / 22%);
+    z-index: 2;
+    transform: translateY(-1.75rem);
+    box-shadow:
+      inset 0 0 0 1px rgb(0 0 0 / 8%),
+      0 1rem 1.8rem rgb(51 48 43 / 28%);
   }
 
   .spine:hover .spine__card,
@@ -1240,8 +1274,8 @@ main {
     visibility: visible;
   }
 
-  .rack__stage:hover ~ .rack__hint,
-  .rack__stage:focus-within ~ .rack__hint {
+  .rack__case:hover ~ .rack__caption .rack__hint,
+  .rack__case:focus-within ~ .rack__caption .rack__hint {
     opacity: 0;
   }
 }
@@ -1257,18 +1291,28 @@ main {
   }
 }
 
-/* No hover to discover anything with, or no room for a shelf: it lies down.
-   Spines become full-width bars with their notes already open. */
+/* No hover to discover anything with, or no room for a bookcase: the shelf
+   lies down. Books become full-width bars with their notes already open,
+   because a hover-only affordance on a touch screen is no affordance at all. */
 @media (hover: none), (max-width: 52rem) {
   .rack {
     display: block;
+  }
+
+  .rack__case {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  .rack__plank {
+    display: none;
   }
 
   .rack__shelf {
     display: grid;
     gap: 0.5rem;
     height: auto;
-    padding-top: 0;
   }
 
   .rack__shelf > li {
@@ -1345,10 +1389,6 @@ main {
 
   .rack__hint {
     display: none;
-  }
-
-  .rack__floor {
-    margin-top: 0.75rem;
   }
 }
 
