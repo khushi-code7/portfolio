@@ -322,8 +322,13 @@ main {
   color: var(--text);
 }
 
-.site-nav a[aria-current='page'] {
+/* The page you are on: bold, in full-strength text, with the accent rule under
+   it. Bolding widens the label slightly, but only the current item is ever
+   bold, so nothing reflows as you navigate. */
+.site-nav a[aria-current='page'],
+.site-header__name[aria-current='page'] {
   color: var(--text);
+  font-weight: 700;
   border-bottom: 1.5px solid var(--accent);
 }
 
@@ -996,6 +1001,7 @@ main {
   .site-header,
   .site-footer,
   .skip-link,
+  .back-link,
   .screen-only {
     display: none !important;
   }
