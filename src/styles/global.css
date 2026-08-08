@@ -1059,14 +1059,10 @@ main {
   transform: translateX(-50%);
 }
 
-/* The case: a warm back panel for the books to stand against, open at the top
-   so a lifted book can rise clear of it. */
+/* No case and no back panel: the books stand on the page, as they do in the
+   drawing. All this does is keep headroom above them for the lift. */
 .rack__case {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--shelf-back) 55%);
-  border: 1px solid var(--border);
-  border-bottom: 0;
-  border-radius: 6px 6px 0 0;
-  padding: 2.25rem clamp(0.9rem, 3vw, 1.75rem) 0;
+  padding: 2.25rem 0 0;
 }
 
 .rack__shelf {
@@ -1076,8 +1072,9 @@ main {
   display: flex;
   align-items: flex-end;
   /* Books lean on their neighbours. A generous gap reads as a row of bars. */
-  gap: 2px;
-  height: clamp(15rem, 30vw, 21rem);
+  gap: 4px;
+  /* Tall. The whole point of the shape is that it is vertical. */
+  height: clamp(19rem, 38vw, 28rem);
 }
 
 .rack__shelf > li {
@@ -1086,12 +1083,11 @@ main {
   height: 100%;
 }
 
-/* The plank they stand on. */
+/* The floor they stand on: a line, as in the drawing, not a plank. */
 .rack__plank {
-  height: 0.7rem;
-  border-radius: 0 0 6px 6px;
-  background: linear-gradient(180deg, var(--shelf-plank) 0 45%, var(--shelf-plank-edge));
-  box-shadow: 0 0.4rem 0.9rem rgb(51 48 43 / 12%);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--shelf-plank);
 }
 
 .rack__caption {
@@ -1255,7 +1251,7 @@ main {
      readable while you decide. */
   .rack__shelf:hover .spine__book,
   .rack__shelf:focus-within .spine__book {
-    opacity: 0.55;
+    opacity: 0.45;
   }
 
   .spine:hover .spine__book,

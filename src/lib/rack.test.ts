@@ -60,16 +60,16 @@ describe('rack', () => {
 
   it('keeps every spine within the sizing bounds', () => {
     for (const spine of rack([piece(1), piece(6), piece(90)])) {
-      expect(spine.width).toBeGreaterThanOrEqual(3);
-      expect(spine.width).toBeLessThanOrEqual(6.2);
-      expect(spine.height).toBeGreaterThanOrEqual(78);
+      expect(spine.width).toBeGreaterThanOrEqual(2.2);
+      expect(spine.width).toBeLessThanOrEqual(4.2);
+      expect(spine.height).toBeGreaterThanOrEqual(74);
       expect(spine.height).toBeLessThanOrEqual(100);
     }
   });
 
   it('gives a single piece a full-size spine rather than the smallest one', () => {
     const [only] = rack([piece(3)]);
-    expect(only.width).toBe(6.2);
+    expect(only.width).toBe(4.2);
     expect(only.height).toBe(100);
   });
 
@@ -80,8 +80,8 @@ describe('rack', () => {
 
   it('treats a zero-minute piece as one minute rather than sizing it to nothing', () => {
     const [zero, ten] = rack([piece(0), piece(10)]);
-    expect(zero.width).toBe(3);
-    expect(ten.width).toBe(6.2);
+    expect(zero.width).toBe(2.2);
+    expect(ten.width).toBe(4.2);
   });
 });
 
