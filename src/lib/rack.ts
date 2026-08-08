@@ -1,25 +1,27 @@
 /**
- * Geometry for the book stack on /writing/.
+ * Geometry for the spine rack on /writing/.
  *
- * Every number a book needs — how long, how thick, where it sits in the stack —
- * is decided here rather than in the template, so the rules can be unit tested
- * and the component stays a plain map over the result. Nothing here knows
- * about Astro.
+ * Every number a spine needs — how wide, how tall, which tint — is decided
+ * here rather than in the template, so the rules can be unit tested and the
+ * component stays a plain map over the result. Nothing here knows about Astro.
  *
- * The books lie flat, one on top of the next, each shifted right of the one
- * above it: a stack that runs from the top left down to the right. A book's
- * length and its thickness are both its reading time, so a long essay is a fat
- * book and a short note is a slim one, and the shape of the stack tells you
- * what is in it before you have read a word.
+ * The one rule worth stating out loud: a spine's size means its length. A long
+ * essay is a fat, tall book and a short one is a thin, short book, so the shelf
+ * tells you what you are in for before you have read a word.
  */
 
-/** Shortest and longest a book may be, in rem — its length on the page. */
-const LENGTH = { min: 15, max: 23 } as const;
-/** Thinnest and thickest, in rem. Books sit on each other, so this is the step
- *  down the stack as well as the height of the book. */
-const THICKNESS = { min: 2.3, max: 3.6 } as const;
-/** How far right each book sits from the one above it, in rem. */
-export const STEP = 2.8;
+/**
+ * Narrowest and widest a spine may be, in rem. Books are tall and slim — a real
+ * spine is a seventh or so as wide as it is high — and that vertical
+ * proportion is what makes a row of them read as books at a glance.
+ */
+const WIDTH = { min: 2.2, max: 4.2 } as const;
+/**
+ * Shortest and tallest, as a percentage of the shelf's height. The floor is
+ * high on purpose: a book three-quarters the height of its neighbour looks
+ * like a book, and one a third of the height looks like a mistake.
+ */
+const HEIGHT = { min: 74, max: 100 } as const;
 /** How many tints the ramp has. Must match --spine-1…N in global.css. */
 export const TINT_COUNT = 6;
 
@@ -27,13 +29,11 @@ export interface Sized {
   minutes: number;
 }
 
-export interface Book {
-  /** rem — how long the book is */
-  length: number;
-  /** rem — how thick the book is */
-  thickness: number;
-  /** rem — offset from the left edge of the stack */
-  x: number;
+export interface Spine {
+  /** rem */
+  width: number;
+  /** percentage of the shelf */
+  height: number;
   /** 1…TINT_COUNT */
   tint: number;
 }
@@ -51,7 +51,7 @@ function round(value: number, places: number): number {
 /**
  * Where `value` sits between `min` and `max`, from 0 to 1. Returns 1 when the
  * two ends are equal — a lone piece, or several of the same length, should get
- * the full-size book rather than the smallest one in the stack.
+ * the full-size spine rather than the smallest one on the shelf.
  */
 export function position(value: number, min: number, max: number): number {
   if (!(max > min)) return 1;
@@ -66,16 +66,10 @@ export function tintFor(index: number): number {
 }
 
 /**
- * Decorates entries — given in display order, newest first — with the size and
- * the place in the stack of their book. The newest sits at the top left; each
- * one after it sits directly on the one above and a step to the right.
- *
- * Only the sideways step is computed here. The books are ordinary blocks in the
- * flow, so each one lands on the one above it without being told to — which
- * matters, because absolutely positioning them would make each book the
- * containing block for its own note and pin the note to the book.
+ * Decorates entries — given in display order, newest first — with the width,
+ * height and tint of their spine.
  */
-export function stack<T extends Sized>(entries: readonly T[]): (T & Book)[] {
+export function rack<T extends Sized>(entries: readonly T[]): (T & Spine)[] {
   if (entries.length === 0) return [];
 
   const lengths = entries.map(minutesOf);
@@ -86,20 +80,19 @@ export function stack<T extends Sized>(entries: readonly T[]): (T & Book)[] {
     const at = position(minutesOf(entry), shortest, longest);
     return {
       ...entry,
-      length: round(LENGTH.min + at * (LENGTH.max - LENGTH.min), 2),
-      thickness: round(THICKNESS.min + at * (THICKNESS.max - THICKNESS.min), 2),
-      x: round(index * STEP, 2),
+      width: round(WIDTH.min + at * (WIDTH.max - WIDTH.min), 2),
+      height: round(HEIGHT.min + at * (HEIGHT.max - HEIGHT.min), 1),
       tint: tintFor(index),
     };
   });
 }
 
-/** Total reading time of the stack, for the caption under it. */
+/** Total reading time of the shelf, for the caption under it. */
 export function totalMinutes(entries: readonly Sized[]): number {
   return entries.reduce((sum, entry) => sum + minutesOf(entry), 0);
 }
 
-/** "56 minutes", "1 hour 4 minutes" — the caption reads as a sentence. */
+/** "56 minutes", "1 hour 4 minutes" — the shelf caption reads as a sentence. */
 export function formatDuration(minutes: number): string {
   const total = Math.max(0, Math.round(minutes));
   const hours = Math.floor(total / 60);

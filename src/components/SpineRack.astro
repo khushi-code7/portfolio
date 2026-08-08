@@ -1,22 +1,19 @@
 ---
 /**
- * The writing archive drawn as a stack of books lying flat.
+ * The writing archive drawn as a shelf of books.
  *
- * Each piece is a book on its side. Its length and its thickness are both its
- * reading time; its cloth is its age. The newest sits at the top left and every
- * one after it sits directly on the book above and a step to the right, so the
- * stack runs from the top left down to the right.
+ * Each piece is a spine standing on the shelf: its size is its reading time and
+ * its tint is its age. Point at one — or tab to it — and it lifts out of the
+ * rack while its note appears in the space beside the shelf. Nothing is
+ * revealed by JavaScript: it is :hover and :focus-within, so it works from the
+ * keyboard and it works with scripting off.
  *
- * Point at a book — or tab to it — and it slides out of the stack while its
- * note appears beside it. Nothing is revealed by JavaScript: it is :hover and
- * :focus, so it works from the keyboard and with scripting off.
- *
- * On a phone, or any pointer that cannot hover, the stack becomes a plain
- * column of bars with the notes already open, because there is no hover to
- * discover them with.
+ * On a phone, or any pointer that cannot hover, the shelf lies down: spines
+ * become full-width bars with their notes already open, because there is no
+ * hover to discover them with.
  */
 import { formatDate, toISODate } from '../lib/content';
-import { formatDuration, stack, totalMinutes } from '../lib/rack';
+import { formatDuration, rack, totalMinutes } from '../lib/rack';
 
 export interface RackItem {
   href: string;
@@ -29,48 +26,47 @@ export interface RackItem {
 
 interface Props {
   entries: RackItem[];
-  /** Shown in place of the stack when there is nothing in it. */
+  /** Shown in place of the shelf when there is nothing on it. */
   emptyMessage?: string;
 }
 
 const { entries, emptyMessage = 'Nothing here yet.' } = Astro.props;
 
-const books = stack(entries);
+const spines = rack(entries);
 const total = formatDuration(totalMinutes(entries));
 const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
 ---
 
 {
-  books.length === 0 ? (
+  spines.length === 0 ? (
     <p class="empty">{emptyMessage}</p>
   ) : (
     <div class="rack">
       <div class="rack__case">
         <ul class="rack__shelf">
-          {books.map((book) => (
-            <li style={`--book-x:${book.x}rem`}>
+          {spines.map((spine) => (
+            <li>
               <a
                 class="spine"
-                href={book.href}
-                style={`--book-l:${book.length}rem;--book-t:${book.thickness}rem;--spine-face:var(--spine-${book.tint});--spine-ink:var(--spine-${book.tint}-ink)`}
+                href={spine.href}
+                style={`--spine-w:${spine.width}rem;--spine-h:${spine.height}%;--spine-face:var(--spine-${spine.tint});--spine-ink:var(--spine-${spine.tint}-ink)`}
               >
-                {/* The book is what slides out. The note must sit outside it: a
+                {/* The book is what lifts. The note must sit outside it: a
                     transformed element becomes the containing block for
                     anything absolute inside it, which would nail the note to
-                    the book instead of the page. */}
+                    the spine instead of the shelf. */}
                 <span class="spine__book">
                   <span class="spine__bands" aria-hidden="true" />
-                  <span class="spine__title">{book.title}</span>
-                  <span class="spine__mins">{book.minutes} min read</span>
-                  <span class="spine__pages" aria-hidden="true" />
+                  <span class="spine__title">{spine.title}</span>
+                  <span class="spine__mins">{spine.minutes} min read</span>
                 </span>
 
                 <span class="spine__card">
-                  <span class="spine__card-title">{book.title}</span>
-                  <span class="spine__card-summary">{book.summary}</span>
+                  <span class="spine__card-title">{spine.title}</span>
+                  <span class="spine__card-summary">{spine.summary}</span>
                   <span class="spine__card-meta">
-                    <span class="spine__badge">{book.minutes} min read</span>
-                    <time datetime={toISODate(book.date)}>{formatDate(book.date)}</time>
+                    <span class="spine__badge">{spine.minutes} min read</span>
+                    <time datetime={toISODate(spine.date)}>{formatDate(spine.date)}</time>
                   </span>
                   <span class="spine__card-go">Read →</span>
                 </span>
@@ -84,7 +80,7 @@ const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
 
       <p class="rack__caption">
         <span>
-          {count} · {total} of reading · longer pieces are longer books
+          {count} · {total} of reading · wider and taller means longer
         </span>
         <span class="rack__hint">Point at a book, or press Tab</span>
       </p>

@@ -1,19 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  STEP,
-  TINT_COUNT,
-  formatDuration,
-  position,
-  stack,
-  tintFor,
-  totalMinutes,
-} from './rack';
+import { TINT_COUNT, formatDuration, position, rack, tintFor, totalMinutes } from './rack';
 
 const piece = (minutes: number) => ({ minutes });
-
-/** Matches the rounding the module does, so sums compare exactly. */
-const round = (value: number) => Math.round(value * 100) / 100;
 
 describe('position', () => {
   it('is 0 at the bottom of the range and 1 at the top', () => {
@@ -25,7 +14,7 @@ describe('position', () => {
     expect(position(6, 2, 10)).toBe(0.5);
   });
 
-  it('gives a full-size book when every piece is the same length', () => {
+  it('gives a full-size spine when every piece is the same length', () => {
     expect(position(7, 7, 7)).toBe(1);
   });
 
@@ -58,65 +47,54 @@ describe('tintFor', () => {
   });
 });
 
-describe('stack', () => {
-  it('returns nothing for an empty stack', () => {
-    expect(stack([])).toEqual([]);
+describe('rack', () => {
+  it('returns nothing for an empty shelf', () => {
+    expect(rack([])).toEqual([]);
   });
 
-  it('makes the longest piece the longest and thickest book', () => {
-    const [long, short] = stack([piece(20), piece(4)]);
-    expect(long.length).toBeGreaterThan(short.length);
-    expect(long.thickness).toBeGreaterThan(short.thickness);
+  it('makes the longest piece the biggest spine and the shortest the smallest', () => {
+    const [long, short] = rack([piece(20), piece(4)]);
+    expect(long.width).toBeGreaterThan(short.width);
+    expect(long.height).toBeGreaterThan(short.height);
   });
 
-  it('keeps every book within the sizing bounds', () => {
-    for (const book of stack([piece(1), piece(6), piece(90)])) {
-      expect(book.length).toBeGreaterThanOrEqual(15);
-      expect(book.length).toBeLessThanOrEqual(23);
-      expect(book.thickness).toBeGreaterThanOrEqual(2.3);
-      expect(book.thickness).toBeLessThanOrEqual(3.6);
+  it('keeps every spine within the sizing bounds', () => {
+    for (const spine of rack([piece(1), piece(6), piece(90)])) {
+      expect(spine.width).toBeGreaterThanOrEqual(2.2);
+      expect(spine.width).toBeLessThanOrEqual(4.2);
+      expect(spine.height).toBeGreaterThanOrEqual(74);
+      expect(spine.height).toBeLessThanOrEqual(100);
     }
   });
 
-  it('gives a single piece a full-size book rather than the smallest one', () => {
-    const [only] = stack([piece(3)]);
-    expect(only.length).toBe(23);
-    expect(only.thickness).toBe(3.6);
-  });
-
-  it('starts the stack at the left edge', () => {
-    const [first] = stack([piece(5), piece(2)]);
-    expect(first.x).toBe(0);
-  });
-
-  it('steps each book one place to the right of the one above it', () => {
-    const books = stack([piece(5), piece(2), piece(9)]);
-    expect(books[1].x).toBe(STEP);
-    expect(books[2].x).toBe(round(STEP * 2));
+  it('gives a single piece a full-size spine rather than the smallest one', () => {
+    const [only] = rack([piece(3)]);
+    expect(only.width).toBe(4.2);
+    expect(only.height).toBe(100);
   });
 
   it('carries the original entry through untouched', () => {
-    const [book] = stack([{ minutes: 5, title: 'A piece' }]);
-    expect(book.title).toBe('A piece');
+    const [spine] = rack([{ minutes: 5, title: 'A piece' }]);
+    expect(spine.title).toBe('A piece');
   });
 
   it('treats a zero-minute piece as one minute rather than sizing it to nothing', () => {
-    const [zero, ten] = stack([piece(0), piece(10)]);
-    expect(zero.length).toBe(15);
-    expect(ten.length).toBe(23);
+    const [zero, ten] = rack([piece(0), piece(10)]);
+    expect(zero.width).toBe(2.2);
+    expect(ten.width).toBe(4.2);
   });
 });
 
 describe('totalMinutes', () => {
-  it('adds the stack up', () => {
+  it('adds the shelf up', () => {
     expect(totalMinutes([piece(7), piece(11), piece(6)])).toBe(24);
   });
 
-  it('is zero for an empty stack', () => {
+  it('is zero for an empty shelf', () => {
     expect(totalMinutes([])).toBe(0);
   });
 
-  it('counts a zero-minute piece as one minute, as the book does', () => {
+  it('counts a zero-minute piece as one minute, as the spine does', () => {
     expect(totalMinutes([piece(0), piece(5)])).toBe(6);
   });
 });
