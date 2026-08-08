@@ -1,0 +1,93 @@
+---
+/**
+ * The writing archive drawn as a shelf of books.
+ *
+ * Each piece is a spine standing on the shelf: its size is its reading time and
+ * its tint is its age. Point at one — or tab to it — and it lifts out of the
+ * rack while its note appears in the space beside the shelf. Nothing is
+ * revealed by JavaScript: it is :hover and :focus-within, so it works from the
+ * keyboard and it works with scripting off.
+ *
+ * On a phone, or any pointer that cannot hover, the shelf lies down: spines
+ * become full-width bars with their notes already open, because there is no
+ * hover to discover them with.
+ */
+import { formatDate, toISODate } from '../lib/content';
+import { formatDuration, rack, totalMinutes } from '../lib/rack';
+
+export interface RackItem {
+  href: string;
+  title: string;
+  summary: string;
+  date: Date;
+  /** Reading time in whole minutes. */
+  minutes: number;
+}
+
+interface Props {
+  entries: RackItem[];
+  /** Shown in place of the shelf when there is nothing on it. */
+  emptyMessage?: string;
+}
+
+const { entries, emptyMessage = 'Nothing here yet.' } = Astro.props;
+
+const spines = rack(entries);
+const total = formatDuration(totalMinutes(entries));
+const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
+---
+
+{
+  spines.length === 0 ? (
+    <p class="empty">{emptyMessage}</p>
+  ) : (
+    <div class="rack">
+      <div class="rack__stage">
+        <ul class="rack__shelf">
+          {spines.map((spine) => (
+            <li>
+              <a
+                class="spine"
+                href={spine.href}
+                style={`--spine-w:${spine.width}rem;--spine-h:${spine.height}%;--spine-face:var(--spine-${spine.tint});--spine-ink:var(--spine-${spine.tint}-ink)`}
+              >
+                {/* The book is what lifts. The note must sit outside it: a
+                    transformed element becomes the containing block for
+                    anything absolute inside it, which would nail the note to
+                    the spine instead of the shelf. */}
+                <span class="spine__book">
+                  <span class="spine__bands" aria-hidden="true" />
+                  <span class="spine__title">{spine.title}</span>
+                  <span class="spine__mins">{spine.minutes} min read</span>
+                </span>
+
+                <span class="spine__card">
+                  <span class="spine__card-title">{spine.title}</span>
+                  <span class="spine__card-summary">{spine.summary}</span>
+                  <span class="spine__card-meta">
+                    <span class="spine__badge">{spine.minutes} min read</span>
+                    <time datetime={toISODate(spine.date)}>{formatDate(spine.date)}</time>
+                  </span>
+                  <span class="spine__card-go">Read →</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div class="rack__floor" aria-hidden="true" />
+
+        <p class="rack__caption">
+          <span>
+            {count} · {total} of reading
+          </span>
+          <span>Wider and taller means longer</span>
+        </p>
+      </div>
+
+      <p class="rack__hint" aria-hidden="true">
+        Point at a spine — or press Tab — to see what it is.
+      </p>
+    </div>
+  )
+}

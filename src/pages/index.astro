@@ -15,7 +15,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import IconLink from '../components/IconLink.astro';
 import { site } from '../data/site';
-import { publishedByNewest } from '../lib/content';
+import { publishedByNewest, readingTime } from '../lib/content';
 
 const pieces = publishedByNewest(await getCollection('writing'));
 
@@ -58,6 +58,7 @@ const linkFor = (label: string) => site.links.find((link) => link.label === labe
                   <a href={`/writing/${piece.id}/`}>{piece.data.title}</a>
                 </h3>
                 <p>{piece.data.summary}</p>
+                <p class="article__meta">{readingTime(piece.body ?? '')} min read</p>
               </div>
               {piece.data.thumbnail && (
                 <img class="article__thumb" src={piece.data.thumbnail} alt="" width="240" height="160" />

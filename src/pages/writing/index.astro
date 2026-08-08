@@ -2,8 +2,8 @@
 import { getCollection } from 'astro:content';
 
 import Base from '../../layouts/Base.astro';
-import EntryList from '../../components/EntryList.astro';
-import { publishedByNewest } from '../../lib/content';
+import SpineRack from '../../components/SpineRack.astro';
+import { publishedByNewest, readingTime } from '../../lib/content';
 
 const posts = publishedByNewest(await getCollection('writing'));
 
@@ -18,13 +18,13 @@ const description = 'Writing by Khushi Bajaj.';
     </p>
   </div>
 
-  <EntryList
+  <SpineRack
     entries={posts.map((p) => ({
       href: `/writing/${p.id}/`,
       title: p.data.title,
       summary: p.data.summary,
       date: p.data.date,
-      tags: p.data.tags,
+      minutes: readingTime(p.body ?? ''),
     }))}
     emptyMessage="The first pieces are on their way."
   />

@@ -27,6 +27,23 @@
   --accent-soft: #f4e9e3;
   --focus: #a43f24;
 
+  /* The spine rack on /writing/. Six book cloths, all mixed from the one clay,
+     with the ink each is legible in. Newest piece gets the first and the ramp
+     repeats, so the shelf reads oldest-palest whatever is on it. Every pair is
+     checked at 4.5:1 or better, because the reading time is set small. */
+  --spine-1: #a43f24;
+  --spine-1-ink: #fdf1ec;
+  --spine-2: #33302b;
+  --spine-2-ink: #f6f1e7;
+  --spine-3: #ac5238;
+  --spine-3-ink: #fff6f2;
+  --spine-4: #e6bfae;
+  --spine-4-ink: #4a2a1d;
+  --spine-5: #d3907a;
+  --spine-5-ink: #3d221a;
+  --spine-6: #f1dbd0;
+  --spine-6-ink: #6d4436;
+
   --measure: 68ch;
   --page-max: 46rem;
   --gutter: clamp(1.25rem, 5vw, 2.5rem);
@@ -53,6 +70,21 @@
     --accent: #de8a63;
     --accent-soft: #2a2219;
     --focus: #de8a63;
+
+    /* At night the shelf is unlit: the cloths burn brighter against the dark
+       and the pale ones read as bone rather than paper. */
+    --spine-1: #a43f24;
+    --spine-1-ink: #fdf1ec;
+    --spine-2: #e2724c;
+    --spine-2-ink: #2a1109;
+    --spine-3: #6d3323;
+    --spine-3-ink: #f3d9cd;
+    --spine-4: #efe7da;
+    --spine-4-ink: #3a2b22;
+    --spine-5: #8a4a33;
+    --spine-5-ink: #f6e3d9;
+    --spine-6: #c98a6d;
+    --spine-6-ink: #2a1109;
   }
 }
 
@@ -205,6 +237,13 @@ hr {
 .post-head__meta,
 .post-head__methods,
 .home-list__meta,
+.article__meta,
+.rack__caption,
+.rack__hint,
+.spine__mins,
+.spine__badge,
+.spine__card-meta,
+.spine__card-go,
 .cv-masthead__contact,
 .cv-hint,
 .cv-entry__when,
@@ -732,6 +771,12 @@ main {
   max-width: var(--measure);
 }
 
+.article__meta {
+  margin: 0.4rem 0 0;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
 .article__thumb {
   width: 6.5rem;
   aspect-ratio: 3 / 2;
@@ -985,6 +1030,326 @@ main {
 
 .cv-plain + .cv-plain {
   margin-top: 0.5rem;
+}
+
+/* ---------------------------------------------------------------
+   The spine rack — /writing/
+
+   The archive drawn as a shelf. Size is reading time, tint is age. Point at a
+   spine, or tab to it, and it lifts out while its note appears beside the
+   shelf; everything else on the shelf steps back. There is no JavaScript in
+   any of this — :hover and :focus do the whole thing.
+   --------------------------------------------------------------- */
+
+.rack {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: start;
+  /* A shelf wants more room than the reading measure, so this one page steps
+     outside the 46rem column the rest of the site is set in. */
+  width: min(58rem, calc(100vw - 2 * var(--gutter)));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.rack__shelf {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  /* The lift needs somewhere to go, so the shelf reserves headroom above it. */
+  padding-top: 1.5rem;
+  height: clamp(19rem, 36vw, 26rem);
+}
+
+.rack__shelf > li {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+/* The link is a plain, unpositioned, untransformed wrapper — it has to be, or
+   the note inside it could never escape the spine. */
+.spine {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  text-decoration: none;
+  color: var(--spine-ink);
+}
+
+.spine__book {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: var(--spine-w);
+  height: var(--spine-h);
+  padding: 0 0.3rem 0.85rem;
+  background: var(--spine-face);
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  transition:
+    transform var(--transition),
+    opacity var(--transition),
+    box-shadow var(--transition);
+}
+
+/* The two rules pressed near the head of a book cloth. */
+.spine__bands {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.65rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.45;
+  box-shadow: 0 0.3rem 0 currentColor;
+}
+
+.spine__title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  line-height: 1.1;
+  /* A title too long for its spine truncates here and is read in full on the
+     note — the same bargain a real shelf makes. */
+  max-height: calc(100% - 4.75rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.8rem;
+}
+
+.spine__mins {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.rack__floor {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.rack__caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.rack__hint {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--text-muted);
+  transition: opacity var(--transition);
+}
+
+/* The note. Always in the page — only its visibility changes — so it is read
+   by search engines and by anyone whose browser never fires a hover. */
+.spine__card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 19rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  background: var(--bg-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 0.6rem 1.4rem rgb(51 48 43 / 12%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.spine__card-title {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  line-height: 1.25;
+}
+
+.spine__card-summary {
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  line-height: 1.55;
+}
+
+.spine__card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.spine__badge {
+  background: var(--accent);
+  /* Not #fff — the accent lifts to a pale clay in dark mode, and white on it
+     is unreadable. The page background is the right ink either way round. */
+  color: var(--bg);
+  border-radius: 2px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.62rem;
+}
+
+.spine__card-go {
+  font-size: 0.68rem;
+  color: var(--accent);
+}
+
+/* Only where a pointer can actually hover. Everything below reverses it. */
+@media (hover: hover) and (min-width: 52rem) {
+  /* The shelf steps back rather than disappearing — far enough to make the
+     lifted spine the subject, not so far that the other titles stop being
+     readable while you decide. */
+  .rack__shelf:hover .spine__book,
+  .rack__shelf:focus-within .spine__book {
+    opacity: 0.5;
+  }
+
+  .spine:hover .spine__book,
+  .spine:focus .spine__book {
+    opacity: 1;
+    transform: translateY(-1.5rem);
+    box-shadow: 0 0.9rem 1.6rem rgb(51 48 43 / 22%);
+  }
+
+  .spine:hover .spine__card,
+  .spine:focus .spine__card {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .rack__stage:hover ~ .rack__hint,
+  .rack__stage:focus-within ~ .rack__hint {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spine__book {
+    transition: none;
+  }
+
+  .spine:hover .spine__book,
+  .spine:focus .spine__book {
+    transform: none;
+  }
+}
+
+/* No hover to discover anything with, or no room for a shelf: it lies down.
+   Spines become full-width bars with their notes already open. */
+@media (hover: none), (max-width: 52rem) {
+  .rack {
+    display: block;
+  }
+
+  .rack__shelf {
+    display: grid;
+    gap: 0.5rem;
+    height: auto;
+    padding-top: 0;
+  }
+
+  .rack__shelf > li {
+    height: auto;
+  }
+
+  /* The bar carries the cloth now, and the book stops being a box of its own so
+     the title, the minutes and the note all sit in one block. */
+  .spine {
+    display: block;
+    height: auto;
+    padding: 0.9rem 1.1rem 1rem;
+    background: var(--spine-face);
+    border-radius: var(--radius);
+  }
+
+  .spine__book {
+    display: contents;
+  }
+
+  .spine__bands {
+    display: none;
+  }
+
+  .spine__title,
+  .spine__mins {
+    writing-mode: horizontal-tb;
+    transform: none;
+    white-space: normal;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+  }
+
+  .spine__title {
+    font-size: var(--step-1);
+    line-height: 1.25;
+  }
+
+  .spine__mins {
+    display: none;
+  }
+
+  /* On the bar the note is not a panel — it is the rest of the bar. */
+  .spine__card {
+    position: static;
+    width: auto;
+    opacity: 1;
+    visibility: visible;
+    background: none;
+    color: inherit;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0.45rem 0 0;
+    gap: 0.4rem;
+  }
+
+  .spine__card-title,
+  .spine__card-go {
+    display: none;
+  }
+
+  .spine__card-summary,
+  .spine__card-meta {
+    color: inherit;
+  }
+
+  .spine__badge {
+    background: none;
+    color: inherit;
+    border: 1px solid currentColor;
+  }
+
+  .rack__hint {
+    display: none;
+  }
+
+  .rack__floor {
+    margin-top: 0.75rem;
+  }
 }
 
 /* ---------------------------------------------------------------
