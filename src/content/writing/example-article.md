@@ -6,6 +6,10 @@ summary: '[bi]'
 date: 2026-01-01
 tags:
   - '[bj]'
+
+# Kept out of the live build: an article titled '[bh]' would stand on the shelf
+# on /writing/ as a real spine. Still visible in `npm run dev`.
+draft: true
 ---
 
 [bk]
