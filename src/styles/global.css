@@ -300,6 +300,15 @@ main {
   font-weight: 600;
   text-decoration: none;
   letter-spacing: -0.01em;
+  border-bottom: 1.5px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+/* The name is the way back to the homepage, so it answers to the pointer the
+   same way the nav does. */
+.site-header__name:hover,
+.site-header__name:focus-visible {
+  border-bottom-color: currentColor;
 }
 
 .site-nav ul {
@@ -312,14 +321,26 @@ main {
   font-size: var(--step--1);
 }
 
+/* Every nav link carries the underline from the start — transparent until you
+   want it. Reserving the space means hovering never nudges the row by a pixel,
+   which a border appearing out of nothing would. */
 .site-nav a {
   text-decoration: none;
   color: var(--text-muted);
   padding-block: 0.15rem;
+  border-bottom: 1.5px solid transparent;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
-.site-nav a:hover {
+/* Hovering or tabbing to an item draws the rule in ink rather than terracotta:
+   plainly visible while you pick, and still not mistakable for the accent line
+   that marks the page you are actually on. */
+.site-nav a:hover,
+.site-nav a:focus-visible {
   color: var(--text);
+  border-bottom-color: currentColor;
 }
 
 /* The page you are on: bold, in full-strength text, with the accent rule under
