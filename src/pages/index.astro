@@ -1,23 +1,34 @@
 ---
 /**
- * The homepage, built from your sketch.
+ * The homepage. It answers, in order:
  *
- *   nav top right      Contact | CV | Writing
- *   circular photo     with your name beside it
- *   icon links         envelope and LinkedIn, hidden until they have addresses
- *   About box          a bordered panel
- *   Writing            title, summary, and an optional thumbnail
+ *   who         circular photo, name, icon links
+ *   what        one-line research statement — the line that does the work
+ *   who, longer the bio, and a "Currently" line
+ *   proof       Research, then Writing
  *
- * Pieces list themselves — publishing one puts it at the top. This page never
- * needs editing to add a piece of writing.
+ * Research comes before Writing on purpose: this is an academic page that also
+ * carries essays, not a blog with a CV attached.
+ *
+ * Both lists build themselves — publishing a file puts it at the top — and a
+ * section with nothing in it is not rendered at all rather than announcing its
+ * own emptiness. This page never needs editing to add a paper or a piece.
  */
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import IconLink from '../components/IconLink.astro';
 import { site } from '../data/site';
-import { publishedByNewest, readingTime } from '../lib/content';
+import { publishedByNewest, readingTime, displayYear, provenance } from '../lib/content';
 
-const pieces = publishedByNewest(await getCollection('writing'));
+/**
+ * The homepage shows the most recent of each and links through to the full
+ * list. A homepage that prints the whole archive stops being an introduction,
+ * and it makes "All writing" a lie.
+ */
+const SHOWN = 4;
+
+const research = publishedByNewest(await getCollection('research')).slice(0, SHOWN);
+const pieces = publishedByNewest(await getCollection('writing')).slice(0, SHOWN);
 
 const linkFor = (label: string) => site.links.find((link) => link.label === label)?.href ?? '';
 ---
@@ -38,17 +49,60 @@ const linkFor = (label: string) => site.links.find((link) => link.label === labe
     </div>
   </header>
 
-  <section class="about-box" aria-label="About">
+  {site.researchLine && <p class="statement">{site.researchLine}</p>}
+
+  <section class="about" aria-label="About">
     {site.homeIntro.map((paragraph) => <p>{paragraph}</p>)}
+    {
+      site.currently && (
+        <p class="about__now">
+          <span class="about__now-label">Currently</span>
+          {site.currently}
+        </p>
+      )
+    }
   </section>
 
-  <section class="articles">
-    <h2>Writing</h2>
+  {
+    research.length > 0 && (
+      <section class="home-section" aria-labelledby="research-heading">
+        <div class="home-section__head">
+          <h2 id="research-heading">Research</h2>
+          <a class="section__more" href="/research/">
+            All research
+          </a>
+        </div>
 
-    {
-      pieces.length === 0 ? (
-        <p class="empty">Nothing published yet.</p>
-      ) : (
+        <ul class="article-list">
+          {research.map((entry) => (
+            <li class="article">
+              <span class="article__dot" aria-hidden="true" />
+              <div class="article__text">
+                <h3>
+                  <a href={`/research/${entry.id}/`}>{entry.data.title}</a>
+                </h3>
+                <p>{entry.data.summary}</p>
+                <p class="article__meta">
+                  {displayYear(entry.data)} · {provenance(entry.data)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    pieces.length > 0 && (
+      <section class="home-section" aria-labelledby="writing-heading">
+        <div class="home-section__head">
+          <h2 id="writing-heading">Writing</h2>
+          <a class="section__more" href="/writing/">
+            All writing
+          </a>
+        </div>
+
         <ul class="article-list">
           {pieces.map((piece) => (
             <li class="article">
@@ -66,7 +120,7 @@ const linkFor = (label: string) => site.links.find((link) => link.label === labe
             </li>
           ))}
         </ul>
-      )
-    }
-  </section>
+      </section>
+    )
+  }
 </Base>

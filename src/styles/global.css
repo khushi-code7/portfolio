@@ -247,6 +247,7 @@ hr {
 .post-head__methods,
 .home-list__meta,
 .article__meta,
+.about__now-label,
 .rack__caption,
 .rack__hint,
 .spine__mins,
@@ -702,33 +703,78 @@ main {
   color: var(--accent);
 }
 
-/* The bordered panel from the sketch. */
-.about-box {
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg-raised);
-  padding: clamp(1.15rem, 4vw, 1.65rem) clamp(1.25rem, 4vw, 1.85rem);
-  margin-bottom: clamp(2.25rem, 7vw, 3.25rem);
+/* The research statement: one sentence, and the most important line on the
+   site. Display serif and italic so it is plainly a statement rather than the
+   first line of the bio, set short so it is read whole rather than skimmed. */
+.statement {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--step-1);
+  line-height: 1.4;
+  max-width: 44ch;
+  margin: 0 0 clamp(1.5rem, 5vw, 2.25rem);
 }
 
-.about-box p {
+/* The bio. Deliberately not a bordered panel — a box reads like a widget, and
+   plain prose in the text serif reads like a person. */
+.about p {
   max-width: var(--measure);
 }
 
-.about-box p:last-child {
+.about p:last-child {
   margin-bottom: 0;
 }
 
+/* "Currently — ..." The label is the only mechanical text in the bio, so it is
+   set apart by the rule rather than by weight, and the whole line is offset by
+   an accent stroke: it is the newest thing on the page and the reason someone
+   writes to you. */
+.about__now {
+  border-left: 2px solid var(--accent);
+  padding-left: 0.95rem;
+  margin-top: 1.4rem;
+  color: var(--text-muted);
+}
+
+.about__now-label {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--accent);
+  margin-bottom: 0.1rem;
+}
+
 /* ---------------------------------------------------------------
-   Articles list
+   Homepage lists — Research, then Writing. Same row shape for both, so the
+   two sections read as one body of work rather than two features.
    --------------------------------------------------------------- */
 
-.articles > h2 {
+.home-section {
+  margin-top: clamp(2.5rem, 8vw, 3.75rem);
+}
+
+.home-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home-section__head h2 {
   font-size: var(--step-1);
-  display: inline-block;
   border-bottom: 2px solid var(--accent);
   padding-bottom: 0.2rem;
-  margin-bottom: 1.25rem;
+}
+
+.home-section__head .section__more {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.home-section__head .section__more:hover {
+  color: var(--accent);
 }
 
 .article-list {

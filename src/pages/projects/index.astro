@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import { publishedProjects } from '../../data/projects';
+
+const description = 'Sites and front-end pieces built by Khushi Bajaj.';
+---
+
+<Base title="Projects" description={description}>
+  <div class="page-head">
+    <h1>Projects</h1>
+    <p>{description}</p>
+  </div>
+
+  <ol class="entry-list">
+    {
+      publishedProjects.map((project) => (
+        <li>
+          <a class="entry" href={project.href}>
+            <h2 class="entry__title">{project.title}</h2>
+            <p class="entry__summary">{project.summary}</p>
+            <p class="entry__meta">
+              <span>{project.year}</span>
+              <span class="dot">{project.kind}</span>
+              <span class="dot">{project.built.join(', ')}</span>
+            </p>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</Base>

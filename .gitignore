@@ -26,3 +26,6 @@ tokens.env
 Thumbs.db
 .idea/
 .vscode/
+
+# Intermediate page for scripts/cv-onepager.mjs
+.cv-onepager.html

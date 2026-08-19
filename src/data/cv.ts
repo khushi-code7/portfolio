@@ -46,7 +46,7 @@ export const profile = {
    * expected on a CV you attach to an application and unnecessary on a public
    * page anyone can read. Fill it in and it appears on the print version only.
    */
-  phone: '',
+  phone: '+91 96784 39094',
   linkedin: {
     label: 'linkedin.com/in/khushibajaj7',
     href: 'https://www.linkedin.com/in/khushibajaj7',

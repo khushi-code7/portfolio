@@ -8,6 +8,7 @@ date: 2025-06-01
 year: '2025'
 kind: Conference paper
 venue: 'ICMBP-2025 International Conference, Aliah University, Kolkata'
+distinction: Youngest presenter at the conference
 methods:
   - Mixed methods
   - Consumer survey (n = 100)

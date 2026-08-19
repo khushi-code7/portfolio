@@ -1,0 +1,2429 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <!-- Removed immediately when scripts run, so a visitor without JavaScript
+         still gets the painted gradient rather than an empty black page. -->
+    <script>
+      document.documentElement.classList.remove('no-js');
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noctuaire — Extrait de parfum, Grasse</title>
+    <meta
+      name="description"
+      content="Noctuaire is a fictional fragrance house built as a front-end demonstration: four extraits, one batch a year, and a liquid rendered live in a single fragment shader."
+    />
+    <meta name="theme-color" content="#0b0908" />
+    <meta name="robots" content="noindex" />
+    <style>
+/*
+ * NOCTUAIRE — house styles.
+ *
+ * One accent colour, set as --accent and swapped by JS when the visitor
+ * changes fragrance. Everything tinted (rules, small caps, the selected state,
+ * the liquid in the bottles) reads from that one variable, so a fifth
+ * fragrance needs no CSS at all.
+ *
+ * No webfonts. The display face is a didone — Didot on macOS, Bodoni MT on
+ * Windows — because that high-contrast serif is the fragrance industry's own
+ * house style, and it is already installed on nearly every machine that will
+ * open this page.
+ */
+
+:root {
+  --ink: #f4efe8;
+  --ink-dim: #b3a89c;
+  --ink-faint: #7d7268;
+  --ground: #0b0908;
+  --ground-lift: #100e0c;
+  --line: rgba(244, 239, 232, 0.13);
+  --line-strong: rgba(244, 239, 232, 0.26);
+
+  /* The one colour JS swaps. Everything tinted derives from it. */
+  --accent: #c98a3f;
+
+  /* Accent text, lightened. The raw accent is chosen to look right as a rule,
+     a border or a litre of liquid on near-black; as 11px uppercase it fails
+     contrast outright — Oud Obscur's #8e3b34 lands at 3:1. This mix keeps the
+     hue and clears AA for every fragrance. Recomputes when --accent changes. */
+  --accent-text: color-mix(in srgb, var(--accent) 72%, white);
+
+  --display: 'Didot', 'Bodoni MT', 'Playfair Display', 'Sitka Banner', 'Baskerville',
+    'Palatino Linotype', Georgia, serif;
+  --text: 'Sitka Text', 'Book Antiqua', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mech: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+
+  --shell: 74rem;
+  --gutter: clamp(1.5rem, 5vw, 5rem);
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.08rem);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mechanical text: nav, numerals, labels, buttons, prices, notes. Small,
+   spaced, uppercase. This one rule is most of what makes the page read as a
+   fragrance house rather than a blog with a dark theme. */
+nav a,
+.eyebrow,
+.numeral,
+.label,
+.mech,
+button,
+.meta,
+.foot a,
+.pill,
+.tick {
+  font-family: var(--mech);
+  font-size: 0.68rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+h1,
+h2,
+h3,
+h4,
+.display {
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+p {
+  margin: 0 0 1.15rem;
+}
+p:last-child {
+  margin-bottom: 0;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--ground);
+  padding: 0.75rem 1.25rem;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 4px;
+}
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------- fluid */
+
+/* The canvas is fixed behind everything. Sections that should show it through
+   carry .reveal; every other section paints itself opaque and scrolls over. */
+.field-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--ground);
+}
+
+.field-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Shown when WebGL is missing or the shader will not compile. Also what a
+   visitor with JavaScript off sees. */
+.field-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      38% 42% at 46% 44%,
+      color-mix(in srgb, var(--accent) 85%, white) 0%,
+      color-mix(in srgb, var(--accent) 70%, black) 38%,
+      transparent 72%
+    ),
+    radial-gradient(60% 60% at 50% 50%, rgba(255, 255, 255, 0.06), transparent 70%);
+  filter: blur(6px);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+.no-gl .field-fallback,
+.no-js .field-fallback {
+  opacity: 1;
+}
+
+/* Film grain over the fluid. It hides banding in the dark falloff, which is
+   where a smooth gradient on a near-black background always shows it. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* --------------------------------------------------------------- structure */
+
+.page {
+  position: relative;
+  z-index: 2;
+}
+
+.shell {
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+section {
+  position: relative;
+}
+
+.solid {
+  background: var(--ground);
+}
+
+.reveal {
+  background: transparent;
+}
+
+.band {
+  padding-block: clamp(4.5rem, 13vh, 8rem);
+  border-top: 1px solid var(--line);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+}
+
+/* Section headings carry a number. It is a small thing, but a numbered
+   sequence reads as a catalogue and an unnumbered one reads as a web page. */
+.eyebrow {
+  color: var(--accent-text);
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow .num {
+  color: var(--ink-faint);
+  margin-right: 0.9rem;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr);
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.two-col h2 {
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+}
+
+.lede-text {
+  color: var(--ink-dim);
+}
+
+/* ------------------------------------------------------------------ header */
+
+header.top {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem) var(--gutter);
+  flex-wrap: wrap;
+}
+
+header.top.static {
+  position: static;
+  border-bottom: 1px solid var(--line);
+  background: var(--ground);
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+header.top nav {
+  display: flex;
+  gap: clamp(1.25rem, 2.6vw, 2.25rem);
+  flex-wrap: wrap;
+}
+
+header.top nav a {
+  color: var(--ink-dim);
+  text-decoration: none;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid transparent;
+  transition: color 240ms var(--ease), border-color 240ms var(--ease);
+}
+header.top nav a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--accent-text);
+}
+
+/* -------------------------------------------------------------------- hero */
+
+.hero {
+  min-height: 100svh;
+  display: grid;
+  align-content: end;
+  padding-bottom: clamp(2.5rem, 7vh, 4.5rem);
+}
+
+/* The fluid drifts and follows the cursor, so it will sometimes be behind this
+   text wherever it rests. The scrim is what guarantees the headline stays
+   readable rather than sitting cream-on-gold. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 26% 0 0 0;
+  background: linear-gradient(
+    to top,
+    var(--ground) 10%,
+    rgba(11, 9, 8, 0.84) 44%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.hero > .shell {
+  position: relative;
+}
+
+/* "NOCTUAIRE" is one unbreakable word, so this is sized off the viewport with
+   only a small floor — a rem-based minimum overflows a narrow phone. */
+.hero h1 {
+  font-size: clamp(2rem, 10.5vw, 9.5rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.hero .lede {
+  max-width: 34ch;
+  margin: 1.5rem 0 0;
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
+.hero-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  margin-top: clamp(2rem, 6vh, 3.5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.hint {
+  color: var(--ink-faint);
+  max-width: 28ch;
+  margin: 0;
+}
+
+.scroll-cue {
+  color: var(--ink-faint);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.scroll-cue:hover {
+  color: var(--ink);
+}
+.scroll-cue::after {
+  content: '';
+  width: 3rem;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+/* ----------------------------------------------------------------- flacons */
+
+/* The bottle. An SVG symbol, one instance per fragrance, tinted by --liquid.
+   On the product page the same outline clips a live WebGL canvas instead, so
+   the extrait actually moves inside the glass. */
+.flacon {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+}
+
+.flacon__glass {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  display: block;
+  transition: transform 500ms var(--ease), filter 500ms var(--ease);
+}
+
+.flacon__art {
+  display: block;
+  position: relative;
+  z-index: 1; /* the drawn glass sits over the live canvas */
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* The live extrait. Clipped to the inside of the glass, so the mass is
+   contained by the bottle rather than drawn over it. */
+.flacon__glass > canvas,
+.flacon--live > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: url(#fl-inside);
+}
+
+/* The pool of colour a bottle of liquid throws onto the surface under it. */
+.flacon__glass::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -4%;
+  height: 14%;
+  background: radial-gradient(50% 50% at 50% 50%, var(--liquid, var(--accent)), transparent 70%);
+  opacity: 0.22;
+  filter: blur(10px);
+  transition: opacity 500ms var(--ease);
+  pointer-events: none;
+}
+
+.flacon:hover .flacon__glass,
+.flacon:focus-visible .flacon__glass {
+  transform: translateY(-8px);
+}
+.flacon:hover .flacon__glass::after {
+  opacity: 0.4;
+}
+
+/* The paper label, sitting over the plate drawn into the SVG. It is HTML
+   rather than SVG <text> because a <symbol> instanced with <use> cannot carry
+   different words per instance — and the numeral is different on all four. */
+.flacon__plate {
+  position: absolute;
+  left: 35%;
+  right: 35%;
+  top: 66.7%;
+  height: 12%;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  font-family: var(--mech);
+  font-size: clamp(0.42rem, 0.9vw, 0.56rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #17120f;
+  pointer-events: none;
+}
+
+.flacon__meta {
+  display: block;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  transition: border-color 400ms var(--ease);
+}
+
+.flacon__numeral {
+  display: block;
+  color: var(--ink-faint);
+  transition: color 400ms var(--ease);
+}
+
+.flacon__name {
+  display: block;
+  font-family: var(--display);
+  font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+  letter-spacing: 0.1em;
+  margin-top: 0.5rem;
+  color: var(--ink-dim);
+  transition: color 400ms var(--ease);
+}
+
+.flacon__price {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--ink-faint);
+  font-family: var(--mech);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.flacon[aria-pressed='true'] .flacon__meta {
+  border-top-color: var(--accent-text);
+}
+.flacon[aria-pressed='true'] .flacon__numeral {
+  color: var(--accent-text);
+}
+.flacon[aria-pressed='true'] .flacon__name {
+  color: var(--ink);
+}
+.flacon[aria-pressed='true'] .flacon__glass::after {
+  opacity: 0.45;
+}
+
+/* --------------------------------------------------------------- the range */
+
+.range {
+  padding-block: clamp(4.5rem, 13vh, 8rem);
+}
+
+.range-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: clamp(2.5rem, 6vw, 4rem);
+}
+
+.range-head h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.8rem);
+  max-width: 18ch;
+}
+
+.range-head p {
+  color: var(--ink-dim);
+  max-width: 34ch;
+  margin: 0;
+}
+
+.range-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+/* The detail for whichever bottle is selected. Sits on a translucent plate so
+   the fluid stays visible behind it without eating the contrast. */
+.range-detail {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  border-top: 1px solid var(--line-strong);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+
+.range-detail h3 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-top: 0.35rem;
+}
+
+.range-detail .meta {
+  color: var(--accent-text);
+}
+
+.range-detail p {
+  color: var(--ink-dim);
+}
+
+.behaviour {
+  color: var(--ink-faint);
+  font-style: italic;
+  border-left: 1px solid var(--accent);
+  padding-left: 1.25rem;
+  margin-block: 1.75rem;
+}
+
+/* --------------------------------------------------------------- notes/CTA */
+
+.pyramid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.pyramid li {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 1.5rem;
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  padding-top: 1.1rem;
+}
+
+.pyramid .label {
+  color: var(--accent-text);
+}
+
+.pyramid .notes {
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 1.9vw, 1.4rem);
+  line-height: 1.35;
+}
+
+.spec {
+  margin-top: 2.5rem;
+  display: grid;
+  gap: 0.75rem 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.spec div {
+  border-top: 1px solid var(--line);
+  padding-top: 0.8rem;
+}
+
+.spec .label {
+  color: var(--ink-faint);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.pill {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.95rem 2rem;
+  border: 1px solid var(--accent-text);
+  color: var(--accent-text);
+  text-decoration: none;
+  transition: background-color 300ms var(--ease), color 300ms var(--ease);
+}
+
+.pill:hover {
+  background: var(--accent-text);
+  color: var(--ground);
+}
+
+.pill--solid {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+.pill--solid:hover {
+  background: var(--accent-text);
+  border-color: var(--accent-text);
+  color: var(--ground);
+}
+
+/* --------------------------------------------------------------- materials */
+
+/* A real table, because it is real tabular data — six materials against their
+   origin, their harvest and what they are doing in the bottle. */
+.materials {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: clamp(2rem, 5vw, 3rem);
+  text-align: left;
+}
+
+.materials th {
+  font-family: var(--mech);
+  font-size: 0.62rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-faint);
+  padding: 0 1.5rem 0.9rem 0;
+  border-bottom: 1px solid var(--line-strong);
+  vertical-align: bottom;
+}
+
+.materials td {
+  padding: 1.15rem 1.5rem 1.15rem 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: baseline;
+  color: var(--ink-dim);
+}
+
+.materials tr td:first-child {
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.materials .num {
+  color: var(--ink-faint);
+  font-family: var(--mech);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  width: 2.5rem;
+}
+
+/* ------------------------------------------------------------------- quote */
+
+.quote {
+  margin: 0;
+  padding: clamp(2.5rem, 7vw, 4.5rem) 0 0;
+}
+
+.quote blockquote {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  line-height: 1.24;
+  max-width: 22ch;
+}
+
+.quote figcaption {
+  margin-top: 1.75rem;
+  color: var(--ink-faint);
+  font-family: var(--mech);
+  font-size: 0.68rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ ritual */
+
+.steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.steps li {
+  counter-increment: step;
+  border-top: 1px solid var(--line-strong);
+  padding-top: 1.25rem;
+}
+
+.steps li::before {
+  content: counter(step, decimal-leading-zero);
+  display: block;
+  font-family: var(--mech);
+  font-size: 0.68rem;
+  letter-spacing: 0.19em;
+  color: var(--accent-text);
+  margin-bottom: 1rem;
+}
+
+.steps h3 {
+  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  margin-bottom: 0.75rem;
+}
+
+.steps p {
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+/* ----------------------------------------------------------------- journal */
+
+.journal {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.journal li {
+  border-bottom: 1px solid var(--line);
+}
+
+.journal a {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) 2rem;
+  gap: 1.5rem;
+  align-items: baseline;
+  padding: 1.6rem 0;
+  text-decoration: none;
+  transition: padding 400ms var(--ease), color 400ms var(--ease);
+}
+
+.journal a:hover {
+  padding-left: 0.75rem;
+}
+
+.journal .date {
+  font-family: var(--mech);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.journal .title {
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 2.1vw, 1.55rem);
+}
+
+.journal .arrow {
+  color: var(--ink-faint);
+  text-align: right;
+  transition: color 400ms var(--ease), transform 400ms var(--ease);
+}
+.journal a:hover .arrow {
+  color: var(--accent-text);
+}
+
+/* ------------------------------------------------------------ sample block */
+
+.sample {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  border: 1px solid var(--line-strong);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: center;
+}
+
+.sample h3 {
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  margin-bottom: 0.6rem;
+}
+
+.sample p {
+  color: var(--ink-dim);
+  margin: 0;
+  max-width: 46ch;
+}
+
+.sample .pill {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.foot {
+  border-top: 1px solid var(--line);
+  padding-block: clamp(3rem, 8vh, 5rem);
+  color: var(--ink-faint);
+  font-size: 0.92rem;
+}
+
+.foot-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+.foot .label {
+  color: var(--accent-text);
+  display: block;
+  margin-bottom: 1.1rem;
+}
+
+.foot a {
+  color: var(--ink-dim);
+  display: block;
+  text-decoration: none;
+  padding-block: 0.3rem;
+  transition: color 300ms var(--ease);
+}
+.foot a:hover {
+  color: var(--ink);
+}
+
+.foot .mark {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 1.1rem;
+}
+
+.colophon {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+  max-width: 66ch;
+}
+
+.colophon a {
+  display: inline;
+  color: var(--accent-text);
+}
+
+.colophon code {
+  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  font-size: 0.85em;
+  color: var(--ink-dim);
+}
+
+/* ------------------------------------------------------- product page only */
+
+.product {
+  padding-top: clamp(2.5rem, 7vh, 4.5rem);
+  padding-bottom: clamp(4rem, 10vh, 7rem);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 7vw, 6rem);
+  align-items: start;
+}
+
+/* Sticky, so the bottle stays with you while the copy scrolls — the thing
+   being sold should not leave the screen. */
+.product-figure {
+  position: sticky;
+  top: 3rem;
+}
+
+/* The live version of the flacon: a WebGL canvas clipped to the inside of the
+   glass, with the drawn bottle laid over the top of it. */
+.flacon--live {
+  --liquid-opacity: 0;
+  position: relative;
+  aspect-ratio: 2 / 3;
+  max-width: 21rem;
+  margin-inline: auto;
+}
+
+.flacon--live canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: url(#fl-inside);
+}
+
+.flacon--live .flacon__art {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.flacon--live .field-fallback {
+  clip-path: url(#fl-inside);
+}
+
+.product h1 {
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  margin-bottom: 1.25rem;
+}
+
+.product .price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  margin-block: 2rem 1.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.product .price {
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+
+.sizes {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+
+.sizes button {
+  padding: 0.8rem 1.5rem;
+  background: none;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: border-color 300ms var(--ease), color 300ms var(--ease);
+}
+
+.sizes button:hover {
+  color: var(--ink);
+}
+
+.sizes button[aria-pressed='true'] {
+  border-color: var(--accent-text);
+  color: var(--accent-text);
+}
+
+.stock {
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.stock::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 2.5rem;
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+.back:hover {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ reveal */
+
+/* Added by JS, and only when motion is allowed — as static CSS this would hide
+   the whole page from anyone without JavaScript. */
+.will-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 900ms var(--ease), transform 900ms var(--ease);
+}
+
+.will-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ mobile */
+
+@media (max-width: 62rem) {
+  .two-col,
+  .range-detail,
+  .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .range-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 5vw, 2.5rem) 1.25rem;
+  }
+
+  .foot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .product-figure {
+    position: static;
+  }
+
+  .sample {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .journal a {
+    grid-template-columns: minmax(0, 1fr) 2rem;
+    gap: 0.4rem 1rem;
+  }
+  .journal .date {
+    grid-column: 1 / -1;
+  }
+
+  /* Stacked, or four nav items and a wordmark overflow a phone. */
+  header.top {
+    position: static;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--ground);
+  }
+
+  /* Full width, or the nav shrink-wraps its content inside the stacked header
+     and flex-wrap never gets a chance to fire. */
+  header.top nav {
+    width: 100%;
+    gap: 1.1rem;
+    row-gap: 0.5rem;
+  }
+
+  .hero {
+    min-height: 76svh;
+  }
+
+  .pyramid li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+  }
+
+  /* The materials table cannot fold, so it scrolls in its own box rather than
+     pushing the page sideways. */
+  .materials-scroll {
+    overflow-x: auto;
+  }
+  .materials {
+    min-width: 34rem;
+  }
+
+  .grain {
+    opacity: 0.25;
+  }
+}
+
+/* The range stays two-up all the way down. One bottle per row makes each one
+   the height of a phone screen, which reads as a mistake rather than as scale. */
+@media (max-width: 30rem) {
+  .foot-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+    </style>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- ----------------------------------------------------- the flacon ---
+      Drawn once and instanced with <use>. Each instance sets its own --liquid,
+      so the colour of the extrait is a property of the bottle rather than
+      something the stylesheet has to know about.
+
+      The liquid is a flat fill rather than a gradient because a gradient lives
+      in <defs>, outside the shadow tree <use> creates — its stops would
+      resolve --liquid once, against the document, and all four bottles would
+      come out the same colour. The shading is a separate, colourless overlay.
+    -->
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <defs>
+        <style>
+          .fl-liquid,
+          .fl-shade {
+            opacity: var(--liquid-opacity, 1);
+          }
+        </style>
+
+        <linearGradient id="fl-glassg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#fff" stop-opacity=".16" />
+          <stop offset=".28" stop-color="#fff" stop-opacity=".03" />
+          <stop offset=".70" stop-color="#fff" stop-opacity=".02" />
+          <stop offset="1" stop-color="#fff" stop-opacity=".12" />
+        </linearGradient>
+
+        <linearGradient id="fl-shadeg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity=".30" />
+          <stop offset=".14" stop-color="#fff" stop-opacity=".04" />
+          <stop offset=".55" stop-color="#000" stop-opacity=".10" />
+          <stop offset="1" stop-color="#000" stop-opacity=".40" />
+        </linearGradient>
+
+        <linearGradient id="fl-capg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2b251f" />
+          <stop offset=".32" stop-color="#544a3f" />
+          <stop offset=".62" stop-color="#332c26" />
+          <stop offset="1" stop-color="#1b1714" />
+        </linearGradient>
+
+        <!-- The inside of the glass, in fractions of the bottle's box, so the
+             product page can clip a live canvas to exactly this shape. -->
+        <clipPath id="fl-inside" clipPathUnits="objectBoundingBox">
+          <path
+            d="M.46 .207 C.46 .26 .235 .293 .235 .393 L.235 .9 C.235 .927 .26 .94 .3 .94 L.7 .94 C.74 .94 .765 .927 .765 .9 L.765 .393 C.765 .293 .54 .26 .54 .207 Z"
+          />
+        </clipPath>
+
+        <symbol id="flacon" viewBox="0 0 200 300">
+          <rect x="76" y="6" width="48" height="40" rx="3" fill="url(#fl-capg)" stroke="rgba(244,239,232,.20)" />
+          <rect x="74" y="41" width="52" height="3" style="fill: var(--liquid, #c98a3f)" opacity=".8" />
+          <rect x="84" y="46" width="32" height="10" fill="url(#fl-capg)" stroke="rgba(244,239,232,.14)" />
+
+          <path
+            d="M88 56 C88 74 40 84 40 116 L40 272 C40 283 47 289 58 289 L142 289 C153 289 160 283 160 272 L160 116 C160 84 112 74 112 56 Z"
+            fill="url(#fl-glassg)"
+            stroke="rgba(244,239,232,.30)"
+            stroke-width="1.3"
+          />
+
+          <path
+            class="fl-liquid"
+            d="M47 152 C78 145 122 158 153 150 L153 270 C153 278 148 282 140 282 L60 282 C52 282 47 278 47 270 Z"
+            style="fill: var(--liquid, #c98a3f)"
+          />
+          <path
+            class="fl-shade"
+            d="M47 152 C78 145 122 158 153 150 L153 270 C153 278 148 282 140 282 L60 282 C52 282 47 278 47 270 Z"
+            fill="url(#fl-shadeg)"
+          />
+
+          <rect x="54" y="132" width="6" height="128" rx="3" fill="#fff" opacity=".10" />
+          <rect x="145" y="146" width="3" height="104" rx="1.5" fill="#fff" opacity=".07" />
+          <rect x="70" y="200" width="60" height="36" rx="1" fill="#ece4d6" opacity=".92" stroke="rgba(11,9,8,.25)" stroke-width=".8" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <!-- The fluid. Fixed behind the document; solid sections scroll over it. -->
+    <div class="field-stage" aria-hidden="true">
+      <canvas id="field"></canvas>
+      <div class="field-fallback"></div>
+    </div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="page">
+      <header class="top">
+        <a class="wordmark" href="#main">Noctuaire</a>
+        <nav aria-label="Sections">
+          <a href="#range">The Range</a>
+          <a href="#materials">Materials</a>
+          <a href="#house">The House</a>
+          <a href="#journal">Journal</a>
+          <a href="#access">Access</a>
+        </nav>
+      </header>
+
+      <main id="main" tabindex="-1">
+        <!-- ------------------------------------------------------- hero -->
+        <section class="hero reveal">
+          <div class="shell">
+            <span class="eyebrow">Extrait de parfum &middot; Grasse &middot; Since 2016</span>
+            <h1>Noctuaire</h1>
+            <p class="lede">Fragrance in its undiluted state.</p>
+
+            <div class="hero-foot">
+              <p class="hint">
+                The extrait moves toward warmth. Bring your cursor to it, and press.
+              </p>
+              <a class="scroll-cue" href="#range">Four extraits</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------------------ range -->
+        <section class="range solid" id="range">
+          <div class="shell">
+            <div class="range-head">
+              <div>
+                <span class="eyebrow"><span class="num">01</span>The Range</span>
+                <h2>Four, and no fifth until one is retired.</h2>
+              </div>
+              <p data-reveal>
+                Each is sold as extrait and only as extrait. Choose one to see how
+                it behaves — the four are not the same liquid in four colours.
+              </p>
+            </div>
+
+            <!-- The colour of each bottle is a property of the bottle. The
+                 shader presets in field.js carry the matching values. -->
+            <div class="range-grid">
+              <button class="flacon" type="button" data-fragrance="i" aria-pressed="true" style="--liquid: #c98a3f" data-reveal>
+                <span class="flacon__glass">
+                  <!-- The live extrait. JS moves this canvas into whichever
+                       bottle is selected and switches that bottle's painted
+                       liquid off; without JS it stays empty and every bottle
+                       keeps the flat fill drawn in the SVG. -->
+                  <canvas id="range-field"></canvas>
+                  <svg class="flacon__art" viewBox="0 0 200 300" aria-hidden="true"><use href="#flacon" /></svg>
+                  <span class="flacon__plate">N&#8304; I</span>
+                </span>
+                <span class="flacon__meta">
+                  <span class="flacon__numeral">N&#8304; I</span>
+                  <span class="flacon__name">Ambre Fixe</span>
+                  <span class="flacon__price">28% extrait &middot; from &euro;185</span>
+                </span>
+              </button>
+
+              <button class="flacon" type="button" data-fragrance="ii" aria-pressed="false" style="--liquid: #9a93b8" data-reveal>
+                <span class="flacon__glass">
+                  <svg class="flacon__art" viewBox="0 0 200 300" aria-hidden="true"><use href="#flacon" /></svg>
+                  <span class="flacon__plate">N&#8304; II</span>
+                </span>
+                <span class="flacon__meta">
+                  <span class="flacon__numeral">N&#8304; II</span>
+                  <span class="flacon__name">Iris Cendre</span>
+                  <span class="flacon__price">24% extrait &middot; from &euro;210</span>
+                </span>
+              </button>
+
+              <button class="flacon" type="button" data-fragrance="iii" aria-pressed="false" style="--liquid: #d8c98a" data-reveal>
+                <span class="flacon__glass">
+                  <svg class="flacon__art" viewBox="0 0 200 300" aria-hidden="true"><use href="#flacon" /></svg>
+                  <span class="flacon__plate">N&#8304; III</span>
+                </span>
+                <span class="flacon__meta">
+                  <span class="flacon__numeral">N&#8304; III</span>
+                  <span class="flacon__name">N&eacute;roli Blanc</span>
+                  <span class="flacon__price">22% extrait &middot; from &euro;165</span>
+                </span>
+              </button>
+
+              <button class="flacon" type="button" data-fragrance="iv" aria-pressed="false" style="--liquid: #8e3b34" data-reveal>
+                <span class="flacon__glass">
+                  <svg class="flacon__art" viewBox="0 0 200 300" aria-hidden="true"><use href="#flacon" /></svg>
+                  <span class="flacon__plate">N&#8304; IV</span>
+                </span>
+                <span class="flacon__meta">
+                  <span class="flacon__numeral">N&#8304; IV</span>
+                  <span class="flacon__name">Oud Obscur</span>
+                  <span class="flacon__price">31% extrait &middot; from &euro;340</span>
+                </span>
+              </button>
+            </div>
+
+            <!-- Updated in place when the selection changes, and announced, so
+                 the change is not silent for a screen reader. -->
+            <div class="range-detail" aria-live="polite">
+              <div>
+                <span class="meta" id="note-conc">28% extrait</span>
+                <h3 id="note-name">Ambre Fixe</h3>
+                <p class="behaviour" id="note-behaviour">
+                  Answers warmth readily. Holds its shape for hours.
+                </p>
+                <a class="pill" id="note-link" href="n1-ambre-fixe.html">Full composition</a>
+              </div>
+
+              <div>
+                <p id="note-blurb">
+                  Resinous and unhurried. Labdanum reduced over four days until it will
+                  no longer pour, then cut with benzoin until it will. The warmest thing
+                  in the range and the slowest to leave.
+                </p>
+
+                <ul class="pyramid">
+                  <li>
+                    <span class="label">Head</span>
+                    <span class="notes" id="note-head">Bergamot peel, pink pepper</span>
+                  </li>
+                  <li>
+                    <span class="label">Heart</span>
+                    <span class="notes" id="note-heart">Labdanum absolute, ambrette seed, immortelle</span>
+                  </li>
+                  <li>
+                    <span class="label">Base</span>
+                    <span class="notes" id="note-base">Benzoin Siam, tonka, grey amber</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- -------------------------------------------------- materials -->
+        <section class="band solid" id="materials">
+          <div class="shell">
+            <div class="two-col">
+              <div>
+                <span class="eyebrow"><span class="num">02</span>Materials</span>
+                <h2>Bought once, at harvest.</h2>
+              </div>
+              <div>
+                <p class="lede-text">
+                  Every material below is bought in a single lot, once a year, and the
+                  whole of that year's production is macerated together in one vessel in
+                  Grasse. What comes out is what there is. When a batch is finished it is
+                  finished, and the next will not smell identical, because the orris will
+                  not be identical.
+                </p>
+              </div>
+            </div>
+
+            <div class="materials-scroll">
+              <table class="materials">
+                <caption class="mech" style="text-align: left; color: var(--ink-faint); padding-bottom: 1.25rem">
+                  2025 lot &middot; six of the nineteen materials in the range
+                </caption>
+                <thead>
+                  <tr>
+                    <th class="num" scope="col">Lot</th>
+                    <th scope="col">Material</th>
+                    <th scope="col">Origin</th>
+                    <th scope="col">Harvest</th>
+                    <th scope="col">What it does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-reveal>
+                    <td class="num">01</td>
+                    <td>Labdanum</td>
+                    <td>Sierra de Gata, Spain</td>
+                    <td>July</td>
+                    <td>Rockrose resin, still combed from the coats of the goats that walk through it. The spine of N&#8304; I.</td>
+                  </tr>
+                  <tr data-reveal>
+                    <td class="num">02</td>
+                    <td>Orris butter</td>
+                    <td>Chianti, Italy</td>
+                    <td>August</td>
+                    <td>Rhizomes lifted after three years in the ground, then dried for six more before anything is distilled.</td>
+                  </tr>
+                  <tr data-reveal>
+                    <td class="num">03</td>
+                    <td>Oud</td>
+                    <td>Assam, India</td>
+                    <td>Continuous</td>
+                    <td>Twelve years in barrel. Bought from one family; we have never bought from another.</td>
+                  </tr>
+                  <tr data-reveal>
+                    <td class="num">04</td>
+                    <td>Neroli bigarade</td>
+                    <td>Nabeul, Tunisia</td>
+                    <td>April</td>
+                    <td>Distilled at first light, while the blossom still holds water. The window is about nine days.</td>
+                  </tr>
+                  <tr data-reveal>
+                    <td class="num">05</td>
+                    <td>Ambrette seed</td>
+                    <td>Manab&iacute;, Ecuador</td>
+                    <td>February</td>
+                    <td>Rested two years before use. Musk without the animal, and the reason N&#8304; I sits so close to skin.</td>
+                  </tr>
+                  <tr data-reveal>
+                    <td class="num">06</td>
+                    <td>Benzoin Siam</td>
+                    <td>Luang Prabang, Laos</td>
+                    <td>November</td>
+                    <td>Tapped bark, tapped by hand. It is what makes a reduced resin pourable again.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------------------ house -->
+        <section class="band solid" id="house">
+          <div class="shell">
+            <div class="two-col">
+              <div>
+                <span class="eyebrow"><span class="num">03</span>The House</span>
+                <h2>We do not dilute.</h2>
+              </div>
+
+              <div>
+                <p>
+                  Noctuaire makes four fragrances. Each is sold as extrait and only as
+                  extrait — there is no eau de parfum, no eau de toilette, no summer
+                  edition. A dilution is a different fragrance wearing the same name, and
+                  we would rather you knew which one you had bought.
+                </p>
+                <p>
+                  The house was founded in 2016 by two people who had spent a decade
+                  reformulating other people's briefs downward, and wanted to see what
+                  happened if nobody was allowed to ask for it cheaper. The atelier is
+                  four rooms above a former glazier's on Rue Amiral de Grasse. The
+                  laboratory is one of them.
+                </p>
+                <p>
+                  We publish the lot table above because we think you should be able to
+                  see what you are paying for, and because a house that will not tell you
+                  where its orris comes from usually has a reason.
+                </p>
+              </div>
+            </div>
+
+            <figure class="quote">
+              <blockquote>A perfume that is polite at every distance is a perfume nobody remembers.</blockquote>
+              <figcaption>Elke Vandersteen &middot; Perfumer &middot; Antwerp</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- ----------------------------------------------------- ritual -->
+        <section class="band solid" id="ritual">
+          <div class="shell">
+            <div class="two-col">
+              <div>
+                <span class="eyebrow"><span class="num">04</span>The Ritual</span>
+                <h2>How to wear an extrait.</h2>
+              </div>
+              <div>
+                <p class="lede-text">
+                  Extrait is not eau de parfum with a higher price. It is a different
+                  material and it wants to be worn differently — sparingly, close to the
+                  body, and left alone once applied.
+                </p>
+              </div>
+            </div>
+
+            <ol class="steps">
+              <li data-reveal>
+                <h3>To the pulse, never the cloth</h3>
+                <p>
+                  Wrist, the hollow of the throat, behind the ear. Fabric holds an extrait
+                  far too long and gives none of it back, which is how a scarf ends up
+                  smelling of it a season later.
+                </p>
+              </li>
+              <li data-reveal>
+                <h3>One point, not three</h3>
+                <p>
+                  A single application is the whole dose. At 28% and above, the second
+                  point is not twice as much fragrance — it is the same fragrance, worn
+                  louder than it was built to be worn.
+                </p>
+              </li>
+              <li data-reveal>
+                <h3>Do not rub</h3>
+                <p>
+                  Rubbing shears the top notes off and starts the drydown early. Apply it,
+                  and then leave it. The first fifteen minutes are the part most people
+                  destroy.
+                </p>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- ---------------------------------------------------- journal -->
+        <section class="band solid" id="journal">
+          <div class="shell">
+            <span class="eyebrow"><span class="num">05</span>Journal</span>
+
+            <ul class="journal">
+              <li>
+                <a href="#journal">
+                  <span class="date">14 November 2025</span>
+                  <span class="title">On the 2025 orris harvest, which is short</span>
+                  <span class="arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+              <li>
+                <a href="#journal">
+                  <span class="date">2 June 2025</span>
+                  <span class="title">Why we stopped making N&#8304; V after one batch</span>
+                  <span class="arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+              <li>
+                <a href="#journal">
+                  <span class="date">21 February 2025</span>
+                  <span class="title">A note on the price of grey amber</span>
+                  <span class="arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+              <li>
+                <a href="#journal">
+                  <span class="date">9 January 2025</span>
+                  <span class="title">Eleven years of one family's oud</span>
+                  <span class="arrow" aria-hidden="true">&rarr;</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ----------------------------------------------------- access -->
+        <section class="band solid" id="access">
+          <div class="shell">
+            <div class="two-col">
+              <div>
+                <span class="eyebrow"><span class="num">06</span>Access</span>
+                <h2>By appointment, or by post.</h2>
+              </div>
+
+              <div>
+                <p>
+                  The atelier is open on Thursdays and Fridays for private appointments.
+                  Bring nothing; wear nothing. An hour is enough for two of the four, and
+                  attempting all four in one sitting is a waste of an afternoon.
+                </p>
+
+                <div class="spec">
+                  <div>
+                    <span class="label">Atelier</span>
+                    <span>14 Rue Amiral de Grasse, 06130</span>
+                  </div>
+                  <div>
+                    <span class="label">Studio</span>
+                    <span>Hoogstraat 41, Antwerp</span>
+                  </div>
+                  <div>
+                    <span class="label">Stockists</span>
+                    <span>Paris &middot; Antwerp &middot; Kyoto &middot; Mumbai</span>
+                  </div>
+                  <div>
+                    <span class="label">Correspondence</span>
+                    <span>atelier@noctuaire.example</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sample">
+              <div>
+                <h3>The sample set</h3>
+                <p>
+                  All four, 2 ml each, sent anywhere we can ship alcohol. &euro;38, deducted
+                  in full from a subsequent bottle.
+                </p>
+              </div>
+              <a class="pill pill--solid" href="#access">Request the set</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ------------------------------------------------------- footer -->
+      <footer class="foot solid">
+        <div class="shell">
+          <div class="foot-grid">
+            <div>
+              <span class="mark">Noctuaire</span>
+              <p style="max-width: 30ch; margin: 0">
+                Extrait de parfum. One batch a year, made in Grasse, sold from Antwerp.
+              </p>
+            </div>
+            <div>
+              <span class="label">The Range</span>
+              <a href="n1-ambre-fixe.html">N&#8304; I Ambre Fixe</a>
+              <a href="#range">N&#8304; II Iris Cendre</a>
+              <a href="#range">N&#8304; III N&eacute;roli Blanc</a>
+              <a href="#range">N&#8304; IV Oud Obscur</a>
+            </div>
+            <div>
+              <span class="label">House</span>
+              <a href="#materials">Materials</a>
+              <a href="#house">Method</a>
+              <a href="#ritual">The ritual</a>
+              <a href="#journal">Journal</a>
+            </div>
+            <div>
+              <span class="label">Terms</span>
+              <a href="#access">Appointments</a>
+              <a href="#access">Shipping</a>
+              <a href="#access">Returns</a>
+              <a href="#access">Privacy</a>
+            </div>
+          </div>
+
+          <!-- The part that makes this a portfolio piece rather than a pastiche. -->
+          <div class="colophon">
+            <p>
+              <strong>Noctuaire is not a real company.</strong> It is a front-end
+              demonstration built by <a href="https://www.khushibajaj.com/">Khushi Bajaj</a>. Every fragrance,
+              address, material claim and price on this page is invented.
+            </p>
+            <p>
+              The liquid is one fragment shader. There is no 3D model and no animation
+              library: nine spheres are blended with a polynomial smooth&#8209;minimum into
+              a signed distance field and raymarched per pixel, at
+              <code>verts 0 &middot; tris 0 &middot; draw calls 1</code>. The lobes are
+              springs on the CPU — anchored to slow orbits, pulled toward the pointer at
+              different rates, and damped, which is what makes the mass neck and drip
+              rather than slide as one piece. Each fragrance changes the blend radius, so
+              the four behave differently rather than merely differing in colour. The
+              bottles are one SVG symbol; on the
+              <a href="n1-ambre-fixe.html">product page</a> the same outline clips the
+              live canvas, so the extrait moves inside the glass.
+            </p>
+            <p>
+              No dependencies, no webfonts, no build step. It renders a still frame under
+              <code>prefers-reduced-motion</code>, drops resolution when frames run long,
+              stops entirely when scrolled out of view, and falls back to a painted
+              gradient where WebGL is unavailable.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module">
+/* ===================== field.js ===================== */
+/*
+ * The fluid.
+ *
+ * One fullscreen triangle-pair, one fragment shader, one draw call. There is no
+ * geometry — the mass you see is a signed distance field: nine spheres blended
+ * with a polynomial smooth-minimum and then raymarched per pixel. The blending
+ * is what produces the necking and the dripping when two lobes pull apart.
+ *
+ * The physics is deliberately on the CPU, in `step()` below, because it is much
+ * easier to read there than as trigonometry inside the shader: each lobe is a
+ * mass on a spring, anchored to a slow orbit, pulled toward the pointer, and
+ * damped. Nothing else.
+ *
+ * No dependencies.
+ */
+
+/* ------------------------------------------------------------------ presets */
+
+/**
+ * The range. Each fragrance is one entry — adding a fifth means adding an
+ * object here and one <button> in the markup, nothing else. The copy lives
+ * here too, deliberately: the fluid and the description are the same product.
+ *
+ * Rendering:
+ *   base   absorption colour of the body — what light picks up passing through
+ *   sheen  rim and reflection tint
+ *   k      smooth-minimum radius: viscosity. High = syrupy, slow to separate.
+ *   irid   thin-film iridescence, 0–1
+ *   gloss  specular exponent. High = a tight, hard highlight.
+ *   pull   how strongly the mass answers the pointer
+ *   drift  idle speed
+ */
+const FRAGRANCES = [
+  {
+    id: 'i',
+    numeral: 'N⁰ I',
+    name: 'Ambre Fixe',
+    accent: '#c98a3f',
+    base: [1.0, 0.62, 0.22],
+    sheen: [1.0, 0.78, 0.42],
+    k: 0.44,
+    irid: 0.18,
+    gloss: 46,
+    pull: 1.0,
+    drift: 0.5,
+    concentration: '28% extrait',
+    blurb:
+      'Resinous and unhurried. Labdanum reduced over four days until it will no longer pour, then cut with benzoin until it will. The warmest thing in the range and the slowest to leave.',
+    behaviour: 'Answers warmth readily. Holds its shape for hours.',
+    notes: {
+      head: 'Bergamot peel, pink pepper',
+      heart: 'Labdanum absolute, ambrette seed, immortelle',
+      base: 'Benzoin Siam, tonka, grey amber',
+    },
+    href: 'n1-ambre-fixe.html',
+  },
+  {
+    id: 'ii',
+    numeral: 'N⁰ II',
+    name: 'Iris Cendre',
+    accent: '#9a93b8',
+    base: [0.62, 0.6, 0.72],
+    sheen: [0.78, 0.76, 0.9],
+    k: 0.66,
+    irid: 0.1,
+    gloss: 16,
+    pull: 0.66,
+    drift: 0.3,
+    concentration: '24% extrait',
+    blurb:
+      'Orris butter aged six years, worked cold. Powder and cold ash, with none of the sweetness the material usually carries. It sits a little away from the skin rather than on it.',
+    behaviour: 'Slow to answer. Keeps its distance, then settles.',
+    notes: {
+      head: 'Violet leaf, green mandarin',
+      heart: 'Orris butter, cold ash accord, orris concrete',
+      base: 'Haitian vetiver, cashmeran, white musk',
+    },
+    href: '#range',
+  },
+  {
+    id: 'iii',
+    numeral: 'N⁰ III',
+    name: 'Néroli Blanc',
+    accent: '#d8c98a',
+    base: [0.95, 0.92, 0.7],
+    sheen: [1.0, 0.98, 0.86],
+    k: 0.36,
+    irid: 0.5,
+    gloss: 90,
+    pull: 1.45,
+    drift: 0.95,
+    concentration: '22% extrait',
+    blurb:
+      'Bitter orange flower distilled at first light, when the blossom still holds water. Thin, bright, and gone quickly — which is the point. Reapply it; it is meant to be spent.',
+    behaviour: 'Quick and eager. Breaks apart easily and reforms.',
+    notes: {
+      head: 'Neroli bigarade, petitgrain sur fleurs',
+      heart: 'Orange flower absolute, white honey, linden',
+      base: 'Blond woods, orris, clean musk',
+    },
+    href: '#range',
+  },
+  {
+    id: 'iv',
+    numeral: 'N⁰ IV',
+    name: 'Oud Obscur',
+    accent: '#8e3b34',
+    base: [0.42, 0.14, 0.13],
+    sheen: [0.86, 0.36, 0.3],
+    k: 0.74,
+    irid: 0.26,
+    gloss: 30,
+    pull: 0.5,
+    drift: 0.22,
+    concentration: '31% extrait',
+    blurb:
+      'Assam oud, twelve years in barrel, with saffron and a dried rose that has gone almost to leather. Heavy enough that a single point on the wrist is the whole application.',
+    behaviour: 'Reluctant. Moves as one weight, and keeps moving after you stop.',
+    notes: {
+      head: 'Saffron, black pepper',
+      heart: 'Assam oud, dried Taif rose, castoreum accord',
+      base: 'Birch tar, patchouli coeur, labdanum',
+    },
+    href: '#range',
+  },
+];
+
+const byId = (id) => FRAGRANCES.find((f) => f.id === id) ?? FRAGRANCES[0];
+
+/* ------------------------------------------------------------------ shaders */
+
+const NB = 9; // lobes. Must match the #define in the shader.
+
+/**
+ * How wide the visible plane is, in the world units the lobes live in. Derived
+ * from the camera in the shader (origin z 3.4, focal 1.15): 3.4 / 1.15 * 2, the
+ * height of the plane through the origin. It only exists so a pointer at the
+ * edge of the canvas maps to the edge of the fluid — change the focal length
+ * in the shader and this has to change with it.
+ */
+const WORLD = 2.96;
+
+const VERT = `
+attribute vec2 aPos;
+void main() { gl_Position = vec4(aPos, 0.0, 1.0); }
+`;
+
+const FRAG = `
+precision highp float;
+
+#define NB 9
+#define STEPS 72
+
+uniform vec2  uRes;
+uniform float uTime;
+uniform vec4  uBlobs[NB];   // xyz = centre, w = radius
+uniform vec3  uBase;
+uniform vec3  uSheen;
+uniform vec3  uBg;
+uniform float uK;
+uniform float uIrid;
+uniform float uGloss;
+uniform float uPulse;
+
+// Polynomial smooth minimum (Quilez). The k term is the whole trick: it is the
+// width of the blend, and reads on screen as surface tension.
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float map(vec3 p) {
+  float d = length(p - uBlobs[0].xyz) - uBlobs[0].w;
+  for (int i = 1; i < NB; i++) {
+    float di = length(p - uBlobs[i].xyz) - uBlobs[i].w;
+    d = smin(d, di, uK);
+  }
+  // A shallow standing ripple across the skin of the fluid. Amplitude is kept
+  // small on purpose — a large one would break the distance bound and the
+  // raymarch would punch through the surface.
+  d -= 0.012 * sin(p.x * 8.0 + uTime * 0.7) * sin(p.y * 7.0 - uTime * 0.5)
+       * (0.45 + uPulse * 1.4);
+  return d;
+}
+
+vec3 normalAt(vec3 p) {
+  vec2 e = vec2(0.0018, 0.0);
+  return normalize(vec3(
+    map(p + e.xyy) - map(p - e.xyy),
+    map(p + e.yxy) - map(p - e.yxy),
+    map(p + e.yyx) - map(p - e.yyx)
+  ));
+}
+
+// The room the fluid is standing in: a dark warm studio, one large softbox
+// above and to the left, a weak cool bounce from the right, a lit tabletop.
+vec3 env(vec3 rd) {
+  float h = rd.y * 0.5 + 0.5;
+  vec3 c = mix(uBg * 0.45, uBg * 1.7, smoothstep(0.0, 1.0, h));
+
+  vec3 key = normalize(vec3(-0.55, 0.80, 0.35));
+  float k = max(dot(rd, key), 0.0);
+  c += uSheen * pow(k, 5.0) * 0.55;
+  c += vec3(1.0, 0.97, 0.92) * pow(k, 120.0) * 3.2;
+
+  vec3 fill = normalize(vec3(0.85, -0.15, 0.50));
+  c += uSheen * pow(max(dot(rd, fill), 0.0), 9.0) * 0.28;
+
+  float band = max(0.0, 1.0 - abs(rd.y + 0.34) * 3.4);
+  c += uSheen * pow(band, 6.0) * 0.34;
+
+  return max(c, 0.0);
+}
+
+// Thin-film interference, approximated with the usual cosine palette.
+vec3 filmy(float f) {
+  return 0.5 + 0.5 * cos(6.28318 * (vec3(0.0, 0.33, 0.67) + f * 1.7 + 0.12));
+}
+
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+
+  vec3 ro = vec3(0.0, 0.0, 3.4);
+  vec3 rd = normalize(vec3(uv, -1.15));   // see WORLD in the JS: the two must agree
+
+  float t = 0.0;
+  float steps = 0.0;
+  bool hit = false;
+
+  for (int i = 0; i < STEPS; i++) {
+    vec3 p = ro + rd * t;
+    float d = map(p);
+    if (d < 0.0014) { hit = true; break; }
+    t += d * 0.86;          // understep, because of the ripple above
+    steps += 1.0;
+    if (t > 7.5) break;
+  }
+
+  vec3 col;
+
+  if (hit) {
+    vec3 p = ro + rd * t;
+    vec3 n = normalAt(p);
+
+    float fres = pow(1.0 - max(dot(n, -rd), 0.0), 4.0);
+    fres = mix(0.05, 1.0, fres);
+
+    vec3 refl = env(reflect(rd, n));
+    vec3 refr = env(refract(rd, n, 0.62)) * uBase * 1.9;
+    // Light that went in and scattered rather than coming back out along the
+    // refracted ray. Without it the body reads as an opaque solid, not a liquid.
+    refr += uBase * pow(1.0 - fres, 2.0) * 0.30;
+
+    col = mix(refr, refl, fres);
+    col *= mix(vec3(1.0), filmy(fres + p.y * 0.28 + uTime * 0.03), uIrid * fres);
+
+    vec3 L = normalize(vec3(-0.55, 0.80, 0.35));
+    vec3 H = normalize(L - rd);
+    col += vec3(1.0, 0.98, 0.94) * pow(max(dot(n, H), 0.0), uGloss) * 1.5;
+
+    // More marching steps means the ray crawled along a crevice: cheap contact
+    // shading where two lobes meet.
+    col *= mix(0.5, 1.0, 1.0 - steps / float(STEPS));
+
+    col += uSheen * uPulse * fres * 0.55;
+  } else {
+    // uBg is the studio's ambient light — bright enough for the fluid to have
+    // something to reflect. The empty room is a fraction of it, or the page
+    // background would come out milky brown instead of near-black.
+    col = uBg * 0.28;
+    col += uSheen * 0.030 * exp(-2.4 * length(uv));
+  }
+
+  col *= 1.0 - 0.34 * dot(uv, uv);
+
+  // ACES-ish filmic curve, then gamma. Without this the highlights clip white
+  // and the gold reads as yellow plastic.
+  col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
+  col = pow(clamp(col, 0.0, 1.0), vec3(0.4545));
+
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* -------------------------------------------------------------------- setup */
+
+function compile(gl, type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(s) ?? 'shader failed to compile');
+  }
+  return s;
+}
+
+function program(gl) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl, gl.VERTEX_SHADER, VERT));
+  gl.attachShader(p, compile(gl, gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+    throw new Error(gl.getProgramInfoLog(p) ?? 'program failed to link');
+  }
+  return p;
+}
+
+/**
+ * Nine lobes: one core, eight satellites on slow, unequal orbits.
+ *
+ * The radii and the orbit amplitudes have to be set against each other or the
+ * whole thing fails silently: if a satellite orbits closer than core + its own
+ * radius it never leaves the core, the smooth-minimum has nothing to blend,
+ * and nine spheres render as one boring ball. Satellites orbit at 0.58–0.94
+ * with radii 0.22–0.34 against a core of 0.42 — just far enough out to break
+ * the silhouette, close enough that the blend still reaches.
+ */
+function makeLobes(mass) {
+  const lobes = [];
+  for (let i = 0; i < NB; i++) {
+    const core = i === 0;
+    lobes.push({
+      x: 0, y: 0, z: 0,
+      vx: 0, vy: 0, vz: 0,
+      r: (core ? 0.42 : 0.22 + 0.12 * ((i * 5) % 4) / 3) * mass,
+      // Orbit the lobe returns to when nothing is pulling at it.
+      amp: (core ? 0.07 : 0.58 + 0.36 * ((i * 7) % 5) / 4) * mass,
+      fx: core ? 0.11 : 0.17 + i * 0.035,
+      fy: core ? 0.09 : 0.13 + i * 0.041,
+      px: i * 1.7,
+      py: i * 2.3,
+      // Satellites answer the pointer at different rates. That difference is
+      // what makes the mass stretch and neck rather than move as one piece.
+      lag: core ? 0.55 : 0.5 + ((i * 3) % 6) / 7,
+    });
+  }
+  return lobes;
+}
+
+/**
+ * Attach the fluid to a canvas.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {{preset?: object, scale?: number, onFail?: () => void}} opts
+ * @returns {{setPreset: (p: object) => void, destroy: () => void} | null}
+ */
+function mountField(canvas, opts = {}) {
+  const gl =
+    canvas.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' }) ||
+    canvas.getContext('experimental-webgl');
+
+  if (!gl) {
+    opts.onFail?.();
+    return null;
+  }
+
+  let prog;
+  try {
+    prog = program(gl);
+  } catch (err) {
+    console.warn('[noctuaire] fluid unavailable:', err.message);
+    opts.onFail?.();
+    return null;
+  }
+
+  gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'aPos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  const u = {};
+  for (const name of ['uRes', 'uTime', 'uBlobs', 'uBase', 'uSheen', 'uBg', 'uK', 'uIrid', 'uGloss', 'uPulse']) {
+    u[name] = gl.getUniformLocation(prog, name === 'uBlobs' ? 'uBlobs[0]' : name);
+  }
+
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const baseScale = opts.scale ?? 1;
+
+  let preset = opts.preset ?? FRAGRANCES[0];
+  // Where the mass rests. The hero pushes it up and right so the headline sits
+  // on dark ground; the product panel leaves it centred.
+  const [offXWide, offY] = opts.offset ?? [0, 0];
+
+  /**
+   * The horizontal offset only makes sense on a landscape canvas. On a phone
+   * the visible width is a fraction of the height, so the same number in world
+   * units puts the mass off the side of the screen entirely — it fades out as
+   * the canvas approaches portrait.
+   */
+  function offsetX() {
+    const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+    return offXWide * Math.min(1, Math.max(0, (aspect - 0.7) / 0.8));
+  }
+  let quality = window.innerWidth < 700 ? 0.72 : 1;
+  // Overall size of the mass. Below 1 it shrinks away from the edges of the
+  // canvas — which is what the bottle on the product page wants, so there is a
+  // visible surface inside the glass instead of a solid block of colour.
+  const mass = opts.mass ?? 1;
+  const lobes = makeLobes(mass);
+  const packed = new Float32Array(NB * 4);
+
+  // Pointer target, in the same world units as the lobes.
+  let aimX = 0, aimY = 0;
+  let hasPointer = false;
+  let idleSince = 0;
+  // How much of the pointer's pull is actually applied, eased so that arriving
+  // and leaving are both gradual. At rest it is nearly zero — otherwise the
+  // idle attractor drags all nine lobes onto one point and the mass, which is
+  // nine spheres, renders as one sphere.
+  let engage = 0;
+  let pulse = 0;
+  let t0 = 0;
+  let last = 0;
+  let raf = 0;
+  let running = false;
+
+  // Frame budget: if we are consistently missing 40fps, render fewer pixels.
+  let slow = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5) * baseScale * quality;
+    const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
+    const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+  }
+
+  /** One physics tick. dt is in seconds and clamped so a backgrounded tab
+   *  cannot resume with a single enormous step and fling the lobes apart. */
+  function step(time, dt) {
+    // With no pointer for a while the fluid convects on its own — the lobes
+    // simply run their orbits, with a trace of the attractor on a slow
+    // figure-eight so the mass leans about rather than sitting still.
+    const idle = !hasPointer || time - idleSince > 2.6;
+    const offX = offsetX();
+    if (idle) {
+      const s = time * 0.22 * preset.drift;
+      aimX = offX + Math.sin(s) * 0.62;
+      aimY = offY + Math.sin(s * 1.7) * 0.34;
+    }
+    engage += ((idle ? 0.12 : 1) - engage) * Math.min(1, dt * 3.5);
+
+    for (const l of lobes) {
+      // Home: the orbit this lobe belongs on.
+      const hx = offX + Math.sin(time * l.fx * 6.283 * preset.drift + l.px) * l.amp;
+      const hy = offY + Math.cos(time * l.fy * 6.283 * preset.drift + l.py) * l.amp * 0.8;
+      const hz = Math.sin(time * 0.14 * 6.283 * preset.drift + l.px) * 0.18;
+
+      // Spring home, plus a pull toward the pointer that falls off with
+      // distance. The 1/(1+d²) is what makes the near lobes leave first.
+      const dx = aimX - l.x;
+      const dy = aimY - l.y;
+      const d2 = dx * dx + dy * dy;
+      const grip = (preset.pull * l.lag * engage) / (1 + d2 * 2.2);
+
+      // The two forces are deliberately comparable in strength. If the pointer
+      // wins outright the lobes stack up on the cursor; if the orbit wins the
+      // pointer does nothing. Balanced, the mass leans toward the cursor and
+      // stretches, which is the whole effect.
+      l.vx += ((hx - l.x) * 4.2 + dx * grip * 4.4) * dt;
+      l.vy += ((hy - l.y) * 4.2 + dy * grip * 4.4) * dt;
+      l.vz += ((hz - l.z) * 3.0) * dt;
+
+      const damp = Math.pow(0.0022, dt); // ~0.90 per 60fps frame, framerate independent
+      l.vx *= damp;
+      l.vy *= damp;
+      l.vz *= damp;
+
+      l.x += l.vx * dt;
+      l.y += l.vy * dt;
+      l.z += l.vz * dt;
+    }
+
+    pulse = Math.max(0, pulse - dt * 1.6);
+  }
+
+  function pack() {
+    for (let i = 0; i < NB; i++) {
+      const l = lobes[i];
+      packed[i * 4 + 0] = l.x;
+      packed[i * 4 + 1] = l.y;
+      packed[i * 4 + 2] = l.z;
+      packed[i * 4 + 3] = l.r;
+    }
+  }
+
+  function draw(time) {
+    resize();
+    pack();
+    gl.uniform2f(u.uRes, canvas.width, canvas.height);
+    gl.uniform1f(u.uTime, time);
+    gl.uniform4fv(u.uBlobs, packed);
+    gl.uniform3fv(u.uBase, preset.base);
+    gl.uniform3fv(u.uSheen, preset.sheen);
+    gl.uniform3f(u.uBg, 0.022, 0.017, 0.014);
+    gl.uniform1f(u.uK, preset.k * mass); // blend width is a distance, so it scales too
+    gl.uniform1f(u.uIrid, preset.irid);
+    gl.uniform1f(u.uGloss, preset.gloss);
+    gl.uniform1f(u.uPulse, pulse);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    const time = (now - t0) / 1000;
+    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+    last = now;
+
+    if (dt > 0.025 && quality > 0.55) {
+      if (++slow > 40) { slow = 0; quality *= 0.8; }
+    } else if (slow > 0) {
+      slow--;
+    }
+
+    step(time, dt);
+    draw(time);
+  }
+
+  function start() {
+    if (running || still) return;
+    running = true;
+    last = performance.now();
+    if (!t0) t0 = last;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  /* ---- input ---- */
+
+  // Pointer position in world units: the shader looks down -z with the plane
+  // roughly two units wide at the origin, so this only has to be approximate.
+  function aim(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    aimX = ((clientX - r.left) / r.width - 0.5) * (r.width / r.height) * WORLD;
+    aimY = -((clientY - r.top) / r.height - 0.5) * WORLD;
+    hasPointer = true;
+    idleSince = (performance.now() - t0) / 1000;
+  }
+
+  const onMove = (e) => aim(e.clientX, e.clientY);
+  const onLeave = () => { hasPointer = false; };
+
+  // A click sends the mass outward from the point of contact, then it falls
+  // back in — a pressure wave through something with weight.
+  const onDown = (e) => {
+    aim(e.clientX, e.clientY);
+    pulse = 1;
+    for (const l of lobes) {
+      const dx = l.x - aimX;
+      const dy = l.y - aimY;
+      const d = Math.hypot(dx, dy) + 0.001;
+      const f = 3.4 / (1 + d * d * 3);
+      l.vx += (dx / d) * f;
+      l.vy += (dy / d) * f;
+    }
+  };
+
+  const target = opts.pointerTarget ?? window;
+  target.addEventListener('pointermove', onMove, { passive: true });
+  target.addEventListener('pointerdown', onDown, { passive: true });
+  target.addEventListener('pointerleave', onLeave, { passive: true });
+
+  const onVisibility = () => (document.hidden ? stop() : start());
+  document.addEventListener('visibilitychange', onVisibility);
+
+  /*
+   * Only burn a GPU on the fluid while it is actually on screen.
+   *
+   * A `position: fixed` canvas always intersects the viewport, so observing it
+   * would mean the loop never stops. Pages with a fixed field pass the element
+   * whose visibility really decides — the hero section it sits behind.
+   */
+  const io = new IntersectionObserver(
+    (entries) => (entries.some((en) => en.isIntersecting) ? start() : stop()),
+    { threshold: 0 },
+  );
+  io.observe(opts.visibleWhile ?? canvas);
+
+  // Settle the lobes before the first frame is ever shown. They all begin at
+  // the origin, so without this the page loads as a single ball that visibly
+  // unpacks itself over the first second.
+  const WARMUP = 4; // seconds of simulation, run silently
+  for (let i = 0; i < WARMUP * 60; i++) step(i / 60, 1 / 60);
+  t0 = performance.now() - WARMUP * 1000;
+
+  if (still) {
+    // Reduced motion: one frame of the settled shape, and nothing after it.
+    resize();
+    draw(WARMUP);
+  } else {
+    start();
+  }
+
+  window.addEventListener('resize', resize);
+
+  return {
+    setPreset(p) {
+      preset = p;
+      if (still) draw(WARMUP); // nothing else will redraw for us
+    },
+    destroy() {
+      stop();
+      io.disconnect();
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerdown', onDown);
+      target.removeEventListener('pointerleave', onLeave);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('resize', resize);
+    },
+  };
+}
+
+/* ====================== ui.js ======================= */
+/*
+ * Page behaviour that is not the fluid: scroll reveals.
+ *
+ * The reveal class is added from here rather than sitting in the stylesheet on
+ * purpose. As static CSS, `opacity: 0` would hide the entire page from anyone
+ * whose JavaScript failed to load, and from search engines rendering without
+ * it. Adding it at runtime means the worst case is a page that simply appears.
+ */
+
+/**
+ * Fade and lift each [data-reveal] element as it enters the viewport, once.
+ * Siblings stagger, so a row of bottles arrives in sequence rather than as a
+ * single slab. Does nothing at all under prefers-reduced-motion.
+ */
+function revealOnScroll() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const groups = new Map();
+  const els = [...document.querySelectorAll('[data-reveal]')];
+
+  for (const el of els) {
+    const n = groups.get(el.parentElement) ?? 0;
+    groups.set(el.parentElement, n + 1);
+    el.style.transitionDelay = `${Math.min(n, 4) * 90}ms`;
+    el.classList.add('will-reveal');
+  }
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target); // reveals are one-way
+      }
+    },
+    { rootMargin: '0px 0px -12% 0px' },
+  );
+
+  for (const el of els) io.observe(el);
+}
+
+/* ===================== the page ===================== */
+const onFail = () => document.body.classList.add('no-gl');
+
+      // The hero fluid: full bleed, no bottle, fixed behind the page. It is
+      // told to run only while the hero is on screen, because a fixed canvas
+      // always intersects the viewport and would otherwise never pause.
+      const canvas = document.getElementById('field');
+      const field = mountField(canvas, {
+        preset: FRAGRANCES[0],
+        offset: [0.55, 0.22], // clear of the headline, which sits bottom-left
+        visibleWhile: document.querySelector('.hero'),
+        onFail,
+      });
+
+      // The same fluid, in a bottle. Smaller than the glass and resting low, so
+      // it reads as liquid sitting in the flacon rather than filling it.
+      const bottleCanvas = document.getElementById('range-field');
+      const bottleField = mountField(bottleCanvas, {
+        preset: FRAGRANCES[0],
+        // Sized and dropped so the mass fills the lower half of the glass and
+        // its domed top lands near the painted fill line. It is a blob, not a
+        // volume, so the clip does the rest of the work.
+        mass: 1,
+        offset: [0, -0.95],
+        onFail,
+      });
+
+      // Everything the selection touches, in one place.
+      const out = {
+        conc: document.getElementById('note-conc'),
+        name: document.getElementById('note-name'),
+        blurb: document.getElementById('note-blurb'),
+        behaviour: document.getElementById('note-behaviour'),
+        link: document.getElementById('note-link'),
+        head: document.getElementById('note-head'),
+        heart: document.getElementById('note-heart'),
+        base: document.getElementById('note-base'),
+      };
+
+      const buttons = [...document.querySelectorAll('[data-fragrance]')];
+
+      function select(id) {
+        const f = byId(id);
+
+        document.documentElement.style.setProperty('--accent', f.accent);
+        field?.setPreset(f);
+        bottleField?.setPreset(f);
+
+        // Move the live canvas into the chosen bottle and hide that bottle's
+        // painted liquid, so only one bottle is ever alive at a time.
+        const chosen = buttons.find((b) => b.dataset.fragrance === f.id);
+        chosen.querySelector('.flacon__glass').prepend(bottleCanvas);
+        for (const b of buttons) {
+          b.style.setProperty('--liquid-opacity', b === chosen ? '0' : '1');
+        }
+
+        out.conc.textContent = f.concentration;
+        out.name.textContent = f.name;
+        out.blurb.textContent = f.blurb;
+        out.behaviour.textContent = f.behaviour;
+        out.link.href = f.href;
+        out.head.textContent = f.notes.head;
+        out.heart.textContent = f.notes.heart;
+        out.base.textContent = f.notes.base;
+
+        for (const b of buttons) {
+          b.setAttribute('aria-pressed', String(b.dataset.fragrance === f.id));
+        }
+      }
+
+      for (const b of buttons) {
+        b.addEventListener('click', () => select(b.dataset.fragrance));
+      }
+
+      select('i');
+      revealOnScroll();
+
+    </script>
+  </body>
+</html>

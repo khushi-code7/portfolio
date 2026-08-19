@@ -20,9 +20,13 @@ only appears in the browser tab and in Google results. Worth filling in anyway.
 
 Fill these and the site stops looking like a template:
 
-`[a]` your name · `[e]` and `[f]` the About box · `[c]` the site
-description · `[g]` and `[h]` your email and LinkedIn, which switch the two
-icons under your name on.
+`[cb]` your research statement · `[a]` your name · `[e]` and `[f]` the
+bio · `[c]` the site description · `[g]` and `[h]` your email and LinkedIn,
+which switch the two icons under your name on.
+
+`[cb]` first. It is the one line that tells a stranger what you study, and
+`[cb]` and `[cc]` both disappear cleanly if you set them to `''` — so an
+unfilled one is a decision, not a gap.
 
 ---
 
@@ -34,8 +38,10 @@ icons under your name on.
 | `[b]` | Role line, appended to your name in the homepage browser tab. Deliberately empty — fill it in and it comes back. |
 | `[c]` | One sentence describing the site. Used by Google and link previews. |
 | `[d]` | Your email address. Also used by the CV and Contact pages. |
-| `[e]` | The About box on the homepage, first paragraph. |
-| `[f]` | The About box on the homepage, second paragraph. |
+| `[cb]` | **The research statement** — one sentence under your name saying what you work on. The most important line on the site. |
+| `[e]` | Your bio on the homepage, first paragraph. |
+| `[f]` | Your bio on the homepage, second paragraph. |
+| `[cc]` | The "Currently" line under the bio — what you are working on now and what you are looking for. |
 | `[g]` | Email link — write it as `mailto:you@example.com`. |
 | `[h]` | LinkedIn profile URL. |
 | `[i]` | ORCID URL. Free to register, works with no publications. |

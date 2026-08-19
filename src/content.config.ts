@@ -27,6 +27,9 @@ const research = defineCollection({
     tags: z.array(z.string()).default([]),
     // Methods used. Rendered as a separate line because readers scan for it.
     methods: z.array(z.string()).default([]),
+    // An honour attached to the presentation itself — 'Youngest presenter'.
+    // Short enough to sit on one line of a CV.
+    distinction: z.string().optional(),
     // Optional outbound link — a published paper, a dataset, a slide deck.
     url: z.string().url().optional(),
     // Set true to keep a work-in-progress out of the build.

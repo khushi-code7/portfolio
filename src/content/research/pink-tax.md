@@ -8,6 +8,7 @@ year: '2023'
 kind: Seminar paper
 venue: >-
   International Seminar, Kolkata Bidhannagar Society for Academic Advancement
+distinction: Certificate of Appreciation for research originality and relevance
 tags:
   - Pricing
   - Gender

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "node -e \"for(const d of ['dist','.astro']) require('fs').rmSync(d,{recursive:true,force:true})\"",
-    "clean:all": "node -e \"for(const d of ['dist','.astro','node_modules']) require('fs').rmSync(d,{recursive:true,force:true})\""
+    "clean:all": "node -e \"for(const d of ['dist','.astro','node_modules']) require('fs').rmSync(d,{recursive:true,force:true})\"",
+    "cv:pdf": "node scripts/cv-onepager.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.0",
