@@ -72,13 +72,12 @@ export const site = {
 /**
  * The tabs. About is not one of them — it is the box on the homepage. Research
  * is not one either; it lives inside the CV page, which links through to the
- * full list at /research/. Delete the Projects line to take that tab back off.
+ * full list at /research/.
  */
 export const nav = [
   { label: 'Contact', href: '/contact/' },
   { label: 'CV', href: '/cv/' },
   { label: 'Writing', href: '/writing/' },
-  { label: 'Projects', href: '/projects/' },
 ] as const;
 
 /** Links with a real href, in nav/footer display order. */
