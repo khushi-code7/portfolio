@@ -38,7 +38,7 @@ export const site = {
    * ethics — attention, greenwashing and price discrimination in Indian
    * markets." Set it to '' and the line disappears with no gap left behind.
    */
-  researchLine: '[cb]',
+  researchLine: '',
   /**
    * Your bio on the homepage, one paragraph per entry. This is the only place it
    * lives; there is no separate About page.
@@ -56,7 +56,7 @@ export const site = {
    * rather than self-promotion — and it is the line that turns a page view
    * into an email. Set it to '' to hide the line entirely.
    */
-  currently: '[cc]',
+  currently: '',
   /**
    * Profile links. A link with an empty href is hidden automatically, so these
    * stay off the site entirely until you fill them in — nothing to remove.
