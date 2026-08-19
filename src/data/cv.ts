@@ -94,6 +94,16 @@ export const experience: Section = {
   heading: 'Experience',
   entries: [
     {
+      title: 'Freelance web designer',
+      where: 'Independent practice · itsautomaitit.com',
+      when: 'Jun 2026 – present',
+      notes: [
+        'Design and build brand websites end to end: art direction, copy, and front-end development.',
+        'Portfolio of ten self-initiated demonstration sites, across retail, hospitality and luxury goods.',
+      ],
+      href: 'https://www.itsautomaitit.com/',
+    },
+    {
       title: 'Marketing and Sales Intern',
       where: 'Salasar Bakers Pvt. Ltd.',
       when: 'Jan – Mar 2026',
@@ -171,8 +181,12 @@ export const skills = [
     text: 'Questionnaire design and primary data collection, mixed-method study design, secondary-data analysis, academic and report writing.',
   },
   {
+    group: 'Digital',
+    text: 'Web design and front-end development: HTML, CSS and JavaScript, responsive layout, accessibility. Canva.',
+  },
+  {
     group: 'Other',
-    text: 'Public speaking, MS Word and PowerPoint, Canva.',
+    text: 'Public speaking, MS Word and PowerPoint.',
   },
 ];
 
