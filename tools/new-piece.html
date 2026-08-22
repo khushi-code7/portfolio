@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>New piece — Khushi Bajaj</title>
+
+    <!--
+      A local tool, not a page of the site. It never ships: it lives in tools/
+      rather than public/, so `npm run build` does not see it.
+
+      Paste a piece of writing in, fill in the two lines above it, and it hands
+      back the .md file the site expects. The reading time it shows is computed
+      with the same rule the site uses at build time — words / 200, rounded up —
+      so the number here is the number that will appear on the shelf.
+
+      Everything is in this one file: no build step, no libraries, no network.
+      Open it by double-clicking.
+    -->
+
+    <style>
+      /* The site's own tokens, so the preview is the piece as it will look. */
+      :root {
+        --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        --font-display: 'Sitka Banner', 'Sitka Display', 'Baskerville Old Face', 'Book Antiqua',
+          Palatino, Georgia, serif;
+        --font-serif: 'Sitka Text', 'Book Antiqua', 'Palatino Linotype', Palatino, Georgia, serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+        --bg: #fbfaf7;
+        --bg-raised: #f5f1ea;
+        --text: #33302b;
+        --text-muted: #7a7169;
+        --border: #e7e2d9;
+        --accent: #a43f24;
+        --accent-soft: #f4e9e3;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-serif);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      /* Nav, dates, labels and buttons — the one grouped rule that carries the
+         site's look, kept here so the tool sits in the same world. */
+      .label,
+      button,
+      .meta,
+      .pill,
+      legend,
+      .steps h2 {
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 1.1rem clamp(1rem, 4vw, 2rem);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem 1rem;
+      }
+
+      header h1 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        margin: 0;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(1rem, 3vw, 2rem);
+        padding: clamp(1rem, 3vw, 2rem);
+        align-items: start;
+      }
+
+      @media (max-width: 60rem) {
+        main {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+
+      fieldset {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-raised);
+        padding: 1rem 1.1rem 1.2rem;
+        margin: 0 0 1rem;
+      }
+
+      legend {
+        color: var(--accent);
+        padding: 0 0.4rem;
+      }
+
+      .label {
+        display: block;
+        color: var(--text-muted);
+        margin: 0.9rem 0 0.3rem;
+      }
+
+      .label:first-of-type {
+        margin-top: 0;
+      }
+
+      input[type='text'],
+      input[type='date'],
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: inherit;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.5rem 0.6rem;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 3.5rem;
+      }
+
+      input:focus-visible,
+      textarea:focus-visible,
+      [contenteditable]:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+      }
+
+      .row > div {
+        flex: 1 1 10rem;
+      }
+
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.9rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      /* The paste box. Deliberately set in the site's reading face so what you
+         paste already looks like what you will get. */
+      #editor {
+        min-height: 20rem;
+        max-height: 34rem;
+        overflow-y: auto;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.9rem 1rem;
+      }
+
+      #editor:empty::before {
+        content: attr(data-placeholder);
+        color: var(--text-muted);
+      }
+
+      #editor img {
+        max-width: 100%;
+      }
+
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        color: var(--bg);
+        border: 1px solid var(--accent);
+        border-radius: 4px;
+        padding: 0.55rem 0.9rem;
+      }
+
+      button.ghost {
+        background: none;
+        color: var(--accent);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1rem;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.2rem;
+        color: var(--text-muted);
+        margin: 0 0 1rem;
+      }
+
+      .meta b {
+        color: var(--accent);
+        font-weight: inherit;
+      }
+
+      .note {
+        border-left: 2px solid var(--accent);
+        padding: 0.2rem 0 0.2rem 0.9rem;
+        margin: 1rem 0 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .note.warn {
+        border-color: #9a6a1f;
+      }
+
+      /* --- the preview: the article as the site will set it --- */
+      .preview {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: clamp(1.1rem, 3vw, 2rem);
+      }
+
+      .preview h1 {
+        font-family: var(--font-display);
+        font-size: clamp(1.7rem, 4vw, 2.4rem);
+        line-height: 1.15;
+        margin: 0 0 0.5rem;
+      }
+
+      .preview .summary {
+        color: var(--text-muted);
+        margin: 0 0 0.4rem;
+      }
+
+      .prose > h2 {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        margin: 2rem 0 0.6rem;
+      }
+
+      .prose > h3 {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        margin: 1.6rem 0 0.5rem;
+      }
+
+      .prose blockquote {
+        border-left: 2px solid var(--accent);
+        margin: 1.4rem 0;
+        padding-left: 1rem;
+        color: var(--text-muted);
+      }
+
+      .prose code {
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        background: var(--bg-raised);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+      }
+
+      .prose pre {
+        background: var(--bg-raised);
+        padding: 0.9rem 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+
+      .prose pre code {
+        background: none;
+        padding: 0;
+      }
+
+      .prose table {
+        border-collapse: collapse;
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+      }
+
+      .prose th,
+      .prose td {
+        border-bottom: 1px solid var(--border);
+        padding: 0.4rem 0.6rem;
+        text-align: left;
+      }
+
+      .prose a {
+        color: var(--accent);
+      }
+
+      .prose hr {
+        border: 0;
+        border-top: 1px solid var(--border);
+        margin: 2rem 0;
+      }
+
+      .prose img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      /* --- the markdown it produces --- */
+      details {
+        margin-top: 1rem;
+      }
+
+      summary {
+        cursor: pointer;
+        color: var(--accent);
+        font-family: var(--font-sans);
+        font-size: 0.7rem;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      pre.out {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.9rem 1rem;
+        overflow-x: auto;
+        white-space: pre;
+        margin: 0.7rem 0 0;
+      }
+
+      .steps {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem 1.1rem;
+        margin-top: 1rem;
+      }
+
+      .steps h2 {
+        margin: 0 0 0.6rem;
+        color: var(--accent);
+      }
+
+      .steps ol {
+        margin: 0;
+        padding-left: 1.2rem;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      .steps code {
+        font-family: var(--font-mono);
+        font-size: 0.86em;
+        background: var(--bg-raised);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+        color: var(--text);
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>New piece</h1>
+      <p>Paste it, name it, save the file into <code>src/content/writing/</code>.</p>
+    </header>
+
+    <main>
+      <!-- ---------------- left: what you type ---------------- -->
+      <section aria-label="The piece">
+        <fieldset>
+          <legend>The two lines that matter</legend>
+
+          <label class="label" for="title">Title</label>
+          <input id="title" type="text" placeholder="What a halo makes you stop asking" />
+
+          <label class="label" for="summary">Summary — one sentence, shown on the index and in Google</label>
+          <textarea id="summary" rows="2" placeholder="Marketing has spent a century learning to build halos and has never once counted what they cost."></textarea>
+
+          <div class="row">
+            <div>
+              <label class="label" for="date">Date</label>
+              <input id="date" type="date" />
+            </div>
+            <div>
+              <label class="label" for="tags">Tags — comma separated</label>
+              <input id="tags" type="text" placeholder="Brand trust, Attention" />
+            </div>
+          </div>
+
+          <label class="check">
+            <input id="draft" type="checkbox" checked />
+            Draft — visible in <code>npm run dev</code>, kept off the live site
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>The writing</legend>
+          <p class="note" style="margin-top: 0">
+            Paste straight from Word, Google Docs or anywhere else. Bold, italic,
+            underline, headings, lists, quotes, links and tables all come across.
+            You can keep editing in the box after pasting.
+          </p>
+          <div
+            id="editor"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Paste your writing here"
+            data-placeholder="Paste here…"
+          ></div>
+          <div class="actions">
+            <button type="button" class="ghost" id="clear">Clear the box</button>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- ---------------- right: what you get ---------------- -->
+      <section aria-label="The result">
+        <p class="meta" id="meta">
+          <span><b id="mWords">0</b> words</span>
+          <span><b id="mMins">1</b> min read</span>
+          <span><b id="mFile">untitled.md</b></span>
+          <span><b id="mUrl">/writing/untitled/</b></span>
+        </p>
+
+        <div class="actions" style="margin-top: 0">
+          <button type="button" id="download">Save the .md file</button>
+          <button type="button" class="ghost" id="copy">Copy the markdown</button>
+        </div>
+
+        <div id="warnings"></div>
+
+        <div class="steps">
+          <h2>Then</h2>
+          <ol>
+            <li>Move the file into <code>khushi-website/src/content/writing/</code></li>
+            <li>Check it with <code>npm run dev</code></li>
+            <li>Untick <em>Draft</em> above and re-save when it is ready to publish</li>
+            <li>Ship it with <code>.\deploy.ps1 "the title"</code></li>
+          </ol>
+        </div>
+
+        <details>
+          <summary>The markdown it will write</summary>
+          <pre class="out" id="md"></pre>
+        </details>
+
+        <h2 class="label" style="margin-top: 1.5rem">How it will look</h2>
+        <article class="preview">
+          <h1 id="pTitle">Your title</h1>
+          <p class="summary" id="pSummary"></p>
+          <p class="meta"><b id="pMins">1</b> min read</p>
+          <div class="prose" id="pBody"></div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      'use strict';
+
+      const $ = (id) => document.getElementById(id);
+
+      /* ---------------------------------------------------------------
+         Reading time
+
+         The same rule src/lib/content.ts uses at build time, applied to the
+         same string — the markdown body, markers and all. If the two ever
+         disagree the shelf would say one thing and this tool another.
+         --------------------------------------------------------------- */
+      function readingTime(body) {
+        const words = body.trim().split(/\s+/).filter(Boolean).length;
+        if (words === 0) return 1;
+        return Math.max(1, Math.ceil(words / 200));
+      }
+
+      const wordCount = (body) => body.trim().split(/\s+/).filter(Boolean).length;
+
+      /* ---------------------------------------------------------------
+         Is this run bold / italic / underlined?
+
+         Tag names are only half the story. Google Docs and Word mark emphasis
+         with inline styles on plain <span>s, and — the trap that catches every
+         naive converter — Docs wraps an entire copied selection in
+         <b style="font-weight:normal">, which would turn a whole essay bold if
+         you trusted the tag. The style wins wherever it is stated.
+         --------------------------------------------------------------- */
+      function styleOf(el, prop) {
+        return (el.style && el.style[prop]) || '';
+      }
+
+      /**
+       * Set while rendering something that is already bold by virtue of what it
+       * is — a heading, a table's header row. Editors mark those bold as well,
+       * and `## **Title**` would carry the marker into the page for nothing.
+       */
+      let boldIsRedundant = false;
+
+      /**
+       * Which emphasis the current node's ancestors have already opened. Word
+       * writes <b><span style="font-weight:bold">, and marking both levels would
+       * give ****this**** — or, for italic, silently turn two nested marks into
+       * bold. Emphasis is opened by whichever element reaches it first.
+       */
+      const emphasis = { bold: false, italic: false, underline: false, strike: false };
+      const noEmphasis = () =>
+        Object.assign(emphasis, { bold: false, italic: false, underline: false, strike: false });
+
+      function isBold(el) {
+        if (boldIsRedundant) return false;
+        const w = styleOf(el, 'fontWeight');
+        if (w) {
+          if (w === 'normal') return false;
+          if (w === 'bold' || w === 'bolder') return true;
+          const n = parseInt(w, 10);
+          if (!Number.isNaN(n)) return n >= 600;
+        }
+        return el.tagName === 'B' || el.tagName === 'STRONG';
+      }
+
+      function isItalic(el) {
+        const s = styleOf(el, 'fontStyle');
+        if (s === 'italic' || s === 'oblique') return true;
+        if (s === 'normal') return false;
+        return el.tagName === 'I' || el.tagName === 'EM';
+      }
+
+      function decoration(el) {
+        return (styleOf(el, 'textDecorationLine') || styleOf(el, 'textDecoration') || '').toLowerCase();
+      }
+
+      function isUnderline(el) {
+        // Links are underlined by every editor on earth. Underlining a link in
+        // the output would say nothing and read as noise.
+        if (el.tagName === 'A') return false;
+        const d = decoration(el);
+        if (d.includes('underline')) return true;
+        if (d.includes('none')) return false;
+        return el.tagName === 'U' || el.tagName === 'INS';
+      }
+
+      function isStrike(el) {
+        if (decoration(el).includes('line-through')) return true;
+        return el.tagName === 'S' || el.tagName === 'STRIKE' || el.tagName === 'DEL';
+      }
+
+      /* ---------------------------------------------------------------
+         HTML to markdown
+         --------------------------------------------------------------- */
+
+      /** Elements that end the paragraph they are in. BR does not — it is a line. */
+      const BLOCK = new Set([
+        'P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'BLOCKQUOTE',
+        'PRE', 'TABLE', 'HR', 'SECTION', 'ARTICLE', 'FIGURE', 'FIGCAPTION', 'ASIDE',
+      ]);
+
+      /**
+       * Whether a tag is a block cannot be answered by the tag alone. Editors
+       * wrap whole documents in inline tags — Google Docs hands over an entire
+       * essay inside a single <b> — so anything that holds a block is walked as
+       * a container, or the piece arrives as one very long paragraph.
+       */
+      const BLOCK_SELECTOR = Array.from(BLOCK).join(',').toLowerCase();
+      const isContainer = (el) => BLOCK.has(el.tagName) || el.querySelector(BLOCK_SELECTOR) !== null;
+
+      const warnings = [];
+
+      /** Text that must survive as text rather than turn into markup. */
+      function esc(text) {
+        return text
+          .replace(/\\/g, '\\\\')
+          .replace(/([`*\[\]])/g, '\\$1')
+          .replace(/(^|[\s(])_/g, '$1\\_')
+          .replace(/_(?=[\s).,;:!?]|$)/g, '\\_')
+          .replace(/</g, '&lt;');
+      }
+
+      /** A paragraph must not open with something that reads as a list or heading. */
+      function escapeOpening(text) {
+        return text.replace(/^(\s*)([#>+])/, '$1\\$2').replace(/^(\s*)(\d+)\./, '$1$2\\.');
+      }
+
+      /**
+       * Emphasis markers cannot have whitespace against the inside of them —
+       * `** bold **` is not bold — so any space slides out past the marker.
+       */
+      function mark(text, open, close) {
+        const m = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
+        if (!m || !m[2]) return text;
+        return m[1] + open + m[2] + close + m[3];
+      }
+
+      function inline(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          return esc(node.nodeValue.replace(/\u00A0/g, ' ').replace(/\s+/g, ' '));
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+        const el = node;
+        const tag = el.tagName;
+
+        if (tag === 'BR') return '  \n';
+
+        if (tag === 'IMG') {
+          const src = el.getAttribute('src') || '';
+          const alt = el.getAttribute('alt') || '';
+          if (src.startsWith('data:')) {
+            warnings.push(
+              'An image came through as pasted data. Save it into public/ yourself and ' +
+                'point at it with ![alt](/name.png) — the site does not store images inside a piece.',
+            );
+            return '';
+          }
+          if (/^https?:/i.test(src)) {
+            warnings.push(
+              'An image links to ' + src.split('/')[2] + '. Download it into public/ instead, ' +
+                'so the picture cannot vanish from under the essay.',
+            );
+          }
+          if (!alt) warnings.push('An image has no alt text. Describe what it shows before publishing.');
+          return '![' + esc(alt) + '](' + src + ')';
+        }
+
+        if (tag === 'CODE' && el.closest('pre') === null) {
+          const t = el.textContent.replace(/\u00A0/g, ' ');
+          return t ? '`' + t + '`' : '';
+        }
+
+        const outer = { ...emphasis };
+        const addStrike = !emphasis.strike && isStrike(el);
+        const addItalic = !emphasis.italic && isItalic(el);
+        const addBold = !emphasis.bold && isBold(el);
+        const addUnderline = !emphasis.underline && isUnderline(el);
+        if (addStrike) emphasis.strike = true;
+        if (addItalic) emphasis.italic = true;
+        if (addBold) emphasis.bold = true;
+        if (addUnderline) emphasis.underline = true;
+
+        let out = Array.from(el.childNodes).map(inline).join('');
+        Object.assign(emphasis, outer);
+
+        if (tag === 'A') {
+          const href = el.getAttribute('href') || '';
+          if (href && !href.startsWith('#')) {
+            out = '[' + (out.trim() || esc(href)) + '](' + href.replace(/\)/g, '%29') + ')';
+          }
+        }
+
+        if (addStrike) out = mark(out, '~~', '~~');
+        if (addItalic) out = mark(out, '*', '*');
+        if (addBold) out = mark(out, '**', '**');
+        // Markdown has no underline of its own. Astro passes raw HTML straight
+        // through, so the tag is the honest way to keep it.
+        if (addUnderline) out = mark(out, '<u>', '</u>');
+
+        return out;
+      }
+
+      /** Runs of inline content become paragraphs; block children interrupt them. */
+      function renderChildren(container, indent, headingShift) {
+        const out = [];
+        let buffer = [];
+
+        const flush = () => {
+          const text = buffer.join('').replace(/[ \t]+/g, ' ').trim();
+          buffer = [];
+          if (text) out.push(escapeOpening(text));
+        };
+
+        for (const node of Array.from(container.childNodes)) {
+          if (node.nodeType === Node.ELEMENT_NODE && isContainer(node)) {
+            flush();
+            out.push(...renderBlock(node, indent, headingShift));
+          } else {
+            buffer.push(inline(node));
+          }
+        }
+        flush();
+        return out.filter((b) => b && b.trim());
+      }
+
+      function renderBlock(el, indent, headingShift) {
+        const tag = el.tagName;
+
+        if (tag === 'HR') return ['---'];
+
+        if (tag === 'PRE') {
+          const code = el.textContent.replace(/\u00A0/g, ' ').replace(/\s+$/, '');
+          return code ? ['```\n' + code + '\n```'] : [];
+        }
+
+        if (/^H[1-6]$/.test(tag)) {
+          const level = Math.min(6, Number(tag[1]) + headingShift);
+          boldIsRedundant = true;
+          const text = Array.from(el.childNodes).map(inline).join('').replace(/\s+/g, ' ').trim();
+          boldIsRedundant = false;
+          return text ? ['#'.repeat(level) + ' ' + text] : [];
+        }
+
+        if (tag === 'BLOCKQUOTE') {
+          const inner = renderChildren(el, indent, headingShift).join('\n\n');
+          if (!inner) return [];
+          return [inner.split('\n').map((l) => (l ? '> ' + l : '>')).join('\n')];
+        }
+
+        if (tag === 'UL' || tag === 'OL') {
+          const list = renderList(el, indent, headingShift, tag === 'OL');
+          return list ? [list] : [];
+        }
+
+        if (tag === 'TABLE') {
+          const table = renderTable(el);
+          return table ? [table] : [];
+        }
+
+        return renderChildren(el, indent, headingShift);
+      }
+
+      function renderList(el, indent, headingShift, ordered) {
+        const items = Array.from(el.children).filter((c) => c.tagName === 'LI');
+        const pad = ' '.repeat(indent);
+
+        return items
+          .map((li, i) => {
+            const marker = ordered ? i + 1 + '. ' : '- ';
+            const blocks = renderChildren(li, indent + marker.length, headingShift);
+            const first = blocks.shift() || '';
+            const rest = blocks
+              .map((b) =>
+                b
+                  .split('\n')
+                  .map((l) => pad + ' '.repeat(marker.length) + l)
+                  .join('\n'),
+              )
+              .join('\n');
+            return pad + marker + first + (rest ? '\n' + rest : '');
+          })
+          .filter((line) => line.trim() !== '-' && line.trim() !== '')
+          .join('\n');
+      }
+
+      function renderTable(el) {
+        const rows = Array.from(el.querySelectorAll('tr')).map((tr, index) =>
+          Array.from(tr.children).map((cell) => {
+            // The first row becomes the header, which the page sets bold itself.
+            boldIsRedundant = index === 0;
+            const text = Array.from(cell.childNodes)
+              .map(inline)
+              .join('')
+              .replace(/\|/g, '\\|')
+              .replace(/\s+/g, ' ')
+              .trim();
+            boldIsRedundant = false;
+            return text;
+          }),
+        );
+        if (!rows.length) return '';
+
+        const width = Math.max(...rows.map((r) => r.length));
+        const pad = (r) => r.concat(Array(width - r.length).fill(''));
+        const [head, ...body] = rows.map(pad);
+
+        return [
+          '| ' + head.join(' | ') + ' |',
+          '| ' + head.map(() => '---').join(' | ') + ' |',
+          ...body.map((r) => '| ' + r.join(' | ') + ' |'),
+        ].join('\n');
+      }
+
+      /**
+       * Everything an editor leaves behind that is not writing: Word's own
+       * namespace tags, style blocks, empty spans holding a stray font.
+       */
+      function cleanCopy(html) {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('style, script, meta, link, title, o\\:p').forEach((n) => n.remove());
+
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_COMMENT);
+        const comments = [];
+        while (walker.nextNode()) comments.push(walker.currentNode);
+        comments.forEach((c) => c.remove());
+
+        return doc.body;
+      }
+
+      /**
+       * The piece's own top heading level becomes ##, because the page already
+       * prints the title as its h1. A document that starts at Heading 2 keeps
+       * its shape rather than being pushed a level deeper for no reason.
+       */
+      function headingShiftFor(body) {
+        const levels = Array.from(body.querySelectorAll('h1,h2,h3,h4,h5,h6')).map((h) =>
+          Number(h.tagName[1]),
+        );
+        if (!levels.length) return 0;
+        return 2 - Math.min(...levels);
+      }
+
+      function htmlToMarkdown(html) {
+        warnings.length = 0;
+        noEmphasis();
+        const body = cleanCopy(html);
+        const blocks = renderChildren(body, 0, headingShiftFor(body));
+        return blocks.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+      }
+
+      /* ---------------------------------------------------------------
+         Frontmatter
+         --------------------------------------------------------------- */
+
+      /** Single-quoted YAML takes anything, as long as its own quote doubles. */
+      const yamlString = (s) => "'" + String(s).replace(/'/g, "''") + "'";
+
+      function slugify(title) {
+        return (
+          title
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/['’]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 80) || 'untitled'
+        );
+      }
+
+      function frontmatter(fields) {
+        const lines = ['---'];
+        lines.push('title: ' + yamlString(fields.title || 'Untitled'));
+        lines.push('summary: ' + yamlString(fields.summary || ''));
+        lines.push('date: ' + fields.date);
+        if (fields.tags.length) {
+          lines.push('tags:');
+          fields.tags.forEach((t) => lines.push('  - ' + yamlString(t)));
+        }
+        lines.push('draft: ' + (fields.draft ? 'true' : 'false'));
+        lines.push('---');
+        return lines.join('\n');
+      }
+
+      /* ---------------------------------------------------------------
+         Markdown back to HTML, for the preview
+
+         Only ever has to read what the converter above writes, so it is a
+         reader for that dialect rather than a general markdown parser. The
+         .md file is the thing the site builds from; this is a look at it.
+         --------------------------------------------------------------- */
+
+      function escHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function inlineHtml(s) {
+        let out = escHtml(s);
+        // Our own escaping wrote &lt; for a literal <; put it back before the
+        // underline tags below turn into real markup.
+        out = out.replace(/&amp;lt;/g, '&lt;');
+        out = out.replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>');
+        out = out.replace(/`([^`]+)`/g, (_, c) => '<code>' + c + '</code>');
+        out = out.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+        out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+        out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        out = out.replace(/(^|[^*\\])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+        out = out.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+        out = out.replace(/ {2}\n/g, '<br>');
+        out = out.replace(/\\([\\`*_\[\]#>+.-])/g, '$1');
+        return out;
+      }
+
+      function markdownToHtml(md) {
+        const lines = md.split('\n');
+        const out = [];
+        let i = 0;
+
+        const indentOf = (l) => l.match(/^\s*/)[0].length;
+
+        while (i < lines.length) {
+          const line = lines[i];
+
+          if (!line.trim()) {
+            i++;
+            continue;
+          }
+
+          if (/^```/.test(line)) {
+            const code = [];
+            i++;
+            while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+            i++;
+            out.push('<pre><code>' + escHtml(code.join('\n')) + '</code></pre>');
+            continue;
+          }
+
+          if (/^---\s*$/.test(line)) {
+            out.push('<hr>');
+            i++;
+            continue;
+          }
+
+          const heading = line.match(/^(#{1,6})\s+(.*)$/);
+          if (heading) {
+            const level = heading[1].length;
+            out.push('<h' + level + '>' + inlineHtml(heading[2]) + '</h' + level + '>');
+            i++;
+            continue;
+          }
+
+          if (/^>\s?/.test(line)) {
+            const quote = [];
+            while (i < lines.length && /^>\s?/.test(lines[i])) quote.push(lines[i++].replace(/^>\s?/, ''));
+            out.push('<blockquote>' + markdownToHtml(quote.join('\n')) + '</blockquote>');
+            continue;
+          }
+
+          if (/^\|/.test(line)) {
+            const rows = [];
+            while (i < lines.length && /^\|/.test(lines[i])) rows.push(lines[i++]);
+            const cells = (r) =>
+              r
+                .replace(/^\|/, '')
+                .replace(/\|\s*$/, '')
+                .split(/(?<!\\)\|/)
+                .map((c) => c.trim());
+            const head = cells(rows[0]);
+            const body = rows.slice(2).map(cells);
+            out.push(
+              '<table><thead><tr>' +
+                head.map((c) => '<th>' + inlineHtml(c) + '</th>').join('') +
+                '</tr></thead><tbody>' +
+                body
+                  .map((r) => '<tr>' + r.map((c) => '<td>' + inlineHtml(c) + '</td>').join('') + '</tr>')
+                  .join('') +
+                '</tbody></table>',
+            );
+            continue;
+          }
+
+          if (/^\s*([-*]|\d+\.)\s+/.test(line)) {
+            i = renderListHtml(lines, i, indentOf(line), out);
+            continue;
+          }
+
+          const para = [];
+          while (
+            i < lines.length &&
+            lines[i].trim() &&
+            !/^(```|>|\||#{1,6}\s|---\s*$)/.test(lines[i]) &&
+            !/^\s*([-*]|\d+\.)\s+/.test(lines[i])
+          ) {
+            para.push(lines[i++]);
+          }
+          out.push('<p>' + inlineHtml(para.join('\n')) + '</p>');
+        }
+
+        return out.join('\n');
+      }
+
+      /** Lists nest by indent, so the reader follows the indent back out again. */
+      function renderListHtml(lines, start, indent, out) {
+        const ordered = /^\s*\d+\./.test(lines[start]);
+        const items = [];
+        let i = start;
+
+        while (i < lines.length) {
+          const line = lines[i];
+          if (!line.trim()) break;
+          const here = line.match(/^\s*/)[0].length;
+          if (here < indent || !/^\s*([-*]|\d+\.)\s+/.test(line)) break;
+
+          if (here > indent) {
+            const nested = [];
+            i = renderListHtml(lines, i, here, nested);
+            items[items.length - 1] = (items[items.length - 1] || '') + nested.join('\n');
+            continue;
+          }
+
+          items.push(inlineHtml(line.replace(/^\s*([-*]|\d+\.)\s+/, '')));
+          i++;
+        }
+
+        out.push(
+          '<' + (ordered ? 'ol' : 'ul') + '>' +
+            items.map((t) => '<li>' + t + '</li>').join('') +
+            '</' + (ordered ? 'ol' : 'ul') + '>',
+        );
+        return i;
+      }
+
+      /* ---------------------------------------------------------------
+         Wiring
+         --------------------------------------------------------------- */
+
+      const editor = $('editor');
+      let current = { name: 'untitled.md', text: '' };
+
+      function today() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+      }
+
+      function render() {
+        const title = $('title').value.trim();
+        const summary = $('summary').value.trim().replace(/\s+/g, ' ');
+        const tags = $('tags')
+          .value.split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        const body = htmlToMarkdown(editor.innerHTML);
+        const file = frontmatter({
+          title,
+          summary,
+          date: $('date').value || today(),
+          tags,
+          draft: $('draft').checked,
+        }) + '\n\n' + body + '\n';
+
+        const slug = slugify(title);
+        current = { name: slug + '.md', text: file };
+
+        $('mWords').textContent = wordCount(body).toLocaleString();
+        $('mMins').textContent = readingTime(body);
+        $('mFile').textContent = current.name;
+        $('mUrl').textContent = '/writing/' + slug + '/';
+
+        $('md').textContent = file;
+
+        $('pTitle').textContent = title || 'Your title';
+        $('pSummary').textContent = summary;
+        $('pMins').textContent = readingTime(body);
+        $('pBody').innerHTML = markdownToHtml(body);
+
+        const problems = [];
+        if (!title) problems.push('No title yet — the filename and the URL both come from it.');
+        if (!summary) problems.push('No summary yet. It is the line that shows on the index and in Google.');
+        if ($('draft').checked) {
+          problems.push('Draft is on: this stays out of the live site until you untick it.');
+        }
+
+        $('warnings').innerHTML = problems
+          .concat(Array.from(new Set(warnings)))
+          .map((w) => '<p class="note warn">' + escHtml(w) + '</p>')
+          .join('');
+
+        $('download').disabled = !body;
+        $('copy').disabled = !body;
+      }
+
+      $('download').addEventListener('click', () => {
+        const blob = new Blob([current.text], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = current.name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+
+      $('copy').addEventListener('click', async () => {
+        const button = $('copy');
+        const label = button.textContent;
+        try {
+          await navigator.clipboard.writeText(current.text);
+          button.textContent = 'Copied';
+        } catch {
+          button.textContent = 'Select it below instead';
+        }
+        setTimeout(() => (button.textContent = label), 1600);
+      });
+
+      $('clear').addEventListener('click', () => {
+        if (editor.textContent.trim() && !confirm('Empty the box?')) return;
+        editor.innerHTML = '';
+        render();
+      });
+
+      ['title', 'summary', 'date', 'tags', 'draft'].forEach((id) =>
+        $(id).addEventListener('input', render),
+      );
+      editor.addEventListener('input', render);
+      // A paste lands after the event, so read the box on the next tick.
+      editor.addEventListener('paste', () => setTimeout(render, 0));
+
+      $('date').value = today();
+      render();
+    </script>
+  </body>
+</html>
