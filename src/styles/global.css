@@ -1100,7 +1100,15 @@ main {
   position: relative;
   /* A bookcase wants more room than the reading measure, so this one page
      steps outside the 46rem column the rest of the site is set in. */
-  width: min(58rem, calc(100vw - 2 * var(--gutter)));
+  --rack-max: min(58rem, calc(100vw - 2 * var(--gutter)));
+  /* Books are measured in units, not rem, and this is how big a unit is. Full
+     size is 1rem; where the shelf would not fit, the unit shrinks until it
+     does. --rack-w (the shelf in units) and --rack-gaps (the pixels between
+     the books) come from the component, so the sum stays true however many
+     pieces are on the shelf. That is the whole of the phone layout: the same
+     bookcase, drawn smaller, rather than a different thing lying on its side. */
+  --spine-unit: min(1rem, calc((var(--rack-max) - var(--rack-gaps)) / var(--rack-w)));
+  width: var(--rack-max);
   left: 50%;
   transform: translateX(-50%);
 }
@@ -1119,8 +1127,9 @@ main {
   align-items: flex-end;
   /* Books lean on their neighbours. A generous gap reads as a row of bars. */
   gap: 4px;
-  /* Tall. The whole point of the shape is that it is vertical. */
-  height: clamp(19rem, 38vw, 28rem);
+  /* Tall. The whole point of the shape is that it is vertical. The second term
+     keeps the books in proportion once the unit starts shrinking. */
+  height: min(clamp(19rem, 38vw, 28rem), calc(var(--spine-unit) * 28));
 }
 
 .rack__shelf > li {
@@ -1150,6 +1159,10 @@ main {
   color: var(--accent);
 }
 
+.rack__hint--tap {
+  display: none;
+}
+
 /* The link is a plain, unpositioned, untransformed wrapper — it has to be, or
    the note inside it could never escape the book that lifts. */
 .spine {
@@ -1169,9 +1182,9 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  width: var(--spine-w);
+  width: calc(var(--spine-w) * var(--spine-unit));
   height: var(--spine-h);
-  padding: 0 0.25rem 0.7rem;
+  padding: 0 calc(var(--spine-unit) * 0.25) calc(var(--spine-unit) * 0.7);
   background-color: var(--spine-face);
   background-image: linear-gradient(
     90deg,
@@ -1198,32 +1211,34 @@ main {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0.6rem;
+  top: calc(var(--spine-unit) * 0.6);
   height: 1px;
   background: currentColor;
   opacity: 0.45;
-  box-shadow: 0 0.3rem 0 currentColor;
+  box-shadow: 0 calc(var(--spine-unit) * 0.3) 0 currentColor;
 }
 
 .spine__title {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font-family: var(--font-display);
-  font-size: var(--step-0);
+  /* Full size while the unit is full size, then down with it — but never so
+     far down that a title stops being readable on a small phone. */
+  font-size: clamp(0.68rem, calc(var(--spine-unit) * 1.09), var(--step-0));
   line-height: 1.1;
   /* A title too long for its spine truncates here and is read in full on the
      note — the same bargain a real shelf makes. */
-  max-height: calc(100% - 4.5rem);
+  max-height: calc(100% - var(--spine-unit) * 4.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.7rem;
+  margin-bottom: calc(var(--spine-unit) * 0.7);
 }
 
 .spine__mins {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-size: 0.6rem;
+  font-size: max(0.5rem, calc(var(--spine-unit) * 0.6));
   letter-spacing: 0.14em;
   white-space: nowrap;
 }
@@ -1290,8 +1305,9 @@ main {
   color: var(--accent);
 }
 
-/* Only where a pointer can actually hover. The block after this reverses it. */
-@media (hover: hover) and (min-width: 52rem) {
+/* Only where a pointer can actually hover. On a touch screen the note cannot
+   open at all, so a tap goes straight to the piece and the hint says so. */
+@media (hover: hover) {
   /* The shelf steps back rather than disappearing — far enough to make the
      lifted book the subject, not so far that the other titles stop being
      readable while you decide. */
@@ -1333,104 +1349,15 @@ main {
   }
 }
 
-/* No hover to discover anything with, or no room for a bookcase: the shelf
-   lies down. Books become full-width bars with their notes already open,
-   because a hover-only affordance on a touch screen is no affordance at all. */
-@media (hover: none), (max-width: 52rem) {
-  .rack {
-    display: block;
-  }
-
-  .rack__case {
-    background: none;
-    border: 0;
-    padding: 0;
-  }
-
-  .rack__plank {
-    display: none;
-  }
-
-  .rack__shelf {
-    display: grid;
-    gap: 0.5rem;
-    height: auto;
-  }
-
-  .rack__shelf > li {
-    height: auto;
-  }
-
-  /* The bar carries the cloth now, and the book stops being a box of its own so
-     the title, the minutes and the note all sit in one block. */
-  .spine {
-    display: block;
-    height: auto;
-    padding: 0.9rem 1.1rem 1rem;
-    background: var(--spine-face);
-    border-radius: var(--radius);
-  }
-
-  .spine__book {
-    display: contents;
-  }
-
-  .spine__bands {
-    display: none;
-  }
-
-  .spine__title,
-  .spine__mins {
-    writing-mode: horizontal-tb;
-    transform: none;
-    white-space: normal;
-    max-height: none;
-    overflow: visible;
-    margin: 0;
-  }
-
-  .spine__title {
-    font-size: var(--step-1);
-    line-height: 1.25;
-  }
-
-  .spine__mins {
-    display: none;
-  }
-
-  /* On the bar the note is not a panel — it is the rest of the bar. */
-  .spine__card {
-    position: static;
-    width: auto;
-    opacity: 1;
-    visibility: visible;
-    background: none;
-    color: inherit;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0.45rem 0 0;
-    gap: 0.4rem;
-  }
-
-  .spine__card-title,
-  .spine__card-go {
-    display: none;
-  }
-
-  .spine__card-summary,
-  .spine__card-meta {
-    color: inherit;
-  }
-
-  .spine__badge {
-    background: none;
-    color: inherit;
-    border: 1px solid currentColor;
-  }
-
+/* A touch screen has no hover, so the note can never open and the pointer hint
+   would be a lie. The shelf itself is unchanged — it stands up here too. */
+@media (hover: none) {
   .rack__hint {
     display: none;
+  }
+
+  .rack__hint--tap {
+    display: inline;
   }
 }
 

@@ -8,9 +8,11 @@
  * revealed by JavaScript: it is :hover and :focus-within, so it works from the
  * keyboard and it works with scripting off.
  *
- * On a phone, or any pointer that cannot hover, the shelf lies down: spines
- * become full-width bars with their notes already open, because there is no
- * hover to discover them with.
+ * The shelf stands up at every width. Its books are sized in `--spine-unit`
+ * rather than in rem, and that unit shrinks until the whole shelf fits the
+ * screen it is on, so a phone gets the same bookcase as a desktop, only
+ * smaller. Where there is no hover the note cannot open, so a tap goes
+ * straight to the piece.
  */
 import { formatDate, toISODate } from '../lib/content';
 import { formatDuration, rack, totalMinutes } from '../lib/rack';
@@ -30,18 +32,29 @@ interface Props {
   emptyMessage?: string;
 }
 
+/** The gap between two books, in px. Must match `.rack__shelf` in global.css. */
+const SHELF_GAP = 4;
+
 const { entries, emptyMessage = 'Nothing here yet.' } = Astro.props;
 
 const spines = rack(entries);
 const total = formatDuration(totalMinutes(entries));
 const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
+
+/**
+ * The shelf measured in `--spine-unit`s, and the fixed pixels its gaps take.
+ * Together they are what lets the CSS work out how small the unit has to be
+ * for the whole bookcase to fit the screen.
+ */
+const shelfWidth = Math.round(spines.reduce((sum, spine) => sum + spine.width, 0) * 100) / 100;
+const gaps = Math.max(0, spines.length - 1) * SHELF_GAP;
 ---
 
 {
   spines.length === 0 ? (
     <p class="empty">{emptyMessage}</p>
   ) : (
-    <div class="rack">
+    <div class="rack" style={`--rack-w:${shelfWidth};--rack-gaps:${gaps}px`}>
       <div class="rack__case">
         <ul class="rack__shelf">
           {spines.map((spine) => (
@@ -49,7 +62,7 @@ const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
               <a
                 class="spine"
                 href={spine.href}
-                style={`--spine-w:${spine.width}rem;--spine-h:${spine.height}%;--spine-face:var(--spine-${spine.tint});--spine-ink:var(--spine-${spine.tint}-ink)`}
+                style={`--spine-w:${spine.width};--spine-h:${spine.height}%;--spine-face:var(--spine-${spine.tint});--spine-ink:var(--spine-${spine.tint}-ink)`}
               >
                 {/* The book is what lifts. The note must sit outside it: a
                     transformed element becomes the containing block for
@@ -83,6 +96,7 @@ const count = `${entries.length} ${entries.length === 1 ? 'piece' : 'pieces'}`;
           {count} · {total} of reading · wider and taller means longer
         </span>
         <span class="rack__hint">Point at a book, or press Tab</span>
+        <span class="rack__hint rack__hint--tap">Tap a book to read it</span>
       </p>
     </div>
   )
