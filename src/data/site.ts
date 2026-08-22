@@ -27,7 +27,7 @@ export const site = {
    *
    * A square crop from the shoulders up works best; around 800×800 is plenty.
    */
-  portrait: '/portrait-placeholder.svg',
+  portrait: '/portrait.jpg',
   portraitAlt: 'Khushi Bajaj',
   /**
    * The research statement — one sentence directly under your name, and the
